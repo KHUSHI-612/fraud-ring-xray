@@ -19,10 +19,12 @@ Outputs (in ./data/):
 import json
 import os
 from collections import defaultdict
-from datetime import datetime
 
 import networkx as nx
 import pandas as pd
+
+from ml_classifier_cv import predict_cluster_ml_confidence
+
 
 DATA_DIR = "data"
 
@@ -146,10 +148,9 @@ def confidence_tier(weight_density: float) -> dict:
         return {"tier": "high_confidence_fraud", "label": "High Confidence Fraud", "color": "#f87171"}
 
 
-from ml_classifier_cv import predict_cluster_ml_confidence
-
-
 def find_clusters(G: nx.Graph, accounts: pd.DataFrame = None, orders: pd.DataFrame = None):
+
+
     acc_time_map = {}
     if accounts is not None:
         accounts_df = accounts.copy()

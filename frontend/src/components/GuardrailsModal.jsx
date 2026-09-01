@@ -1,5 +1,6 @@
 import React from 'react';
-import { X, ShieldCheck, ShieldAlert, AlertTriangle, AlertCircle, Info } from 'lucide-react';
+import { X, ShieldCheck, ShieldAlert, AlertCircle, Info } from 'lucide-react';
+
 
 export default function GuardrailsModal({ onClose }) {
   return (

@@ -13,11 +13,13 @@ import json
 from pathlib import Path
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from ml_classifier_cv import get_ml_validation_metrics
 
 app = FastAPI(
     title="Fraud Ring X-Ray API",
     description="Defense-only decision support tool for fraud ring detection and forensic explainability."
 )
+
 
 # Enable CORS for all origins
 app.add_middleware(
@@ -92,11 +94,9 @@ def get_evaluation():
         return json.load(f)
 
 
-from ml_classifier_cv import get_ml_validation_metrics
-
-
 @app.get("/ml-validation")
 def get_ml_validation():
+
     """Return validated ML model cross-validation metrics and feature importance coefficients."""
     return get_ml_validation_metrics()
 
@@ -210,5 +210,8 @@ def get_account(account_id: str):
 
 
 if __name__ == "__main__":
+    import os
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
+
