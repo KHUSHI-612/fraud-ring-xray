@@ -1,0 +1,163 @@
+{
+  "false_negative_analysis": {
+    "description": "Financial value of orders placed by accounts belonging to the 6 planted fraud rings",
+    "rings": {
+      "RING_A1": {
+        "members_count": 5,
+        "orders_count": 11,
+        "total_order_value_inr": 17719.70
+      },
+      "RING_A2": {
+        "members_count": 4,
+        "orders_count": 7,
+        "total_order_value_inr": 11624.93
+      },
+      "RING_B1": {
+        "members_count": 6,
+        "orders_count": 13,
+        "total_order_value_inr": 20676.97
+      },
+      "RING_B2": {
+        "members_count": 4,
+        "orders_count": 10,
+        "total_order_value_inr": 15966.65
+      },
+      "RING_C1": {
+        "members_count": 5,
+        "orders_count": 8,
+        "total_order_value_inr": 9211.00
+      },
+      "RING_C2": {
+        "members_count": 4,
+        "orders_count": 6,
+        "total_order_value_inr": 11752.92
+      }
+    },
+    "summary_metrics_inr": {
+      "mean": 14492.03,
+      "median": 13859.78,
+      "min": 9211.00,
+      "max": 20676.97
+    },
+    "recommended_representative_fn_cost_inr": 13859.78,
+    "recommendation_rationale": "Median ring order value (₹13,859.78) is less sensitive to an unusually large or small fraud ring compared to mean (₹14,492.03)."
+  },
+  "false_positive_analysis": {
+    "description": "Financial exposure and operational review/friction costs of legitimate/noise clusters incorrectly flagged by production detector (MIN_CLUSTER_WEIGHT_DENSITY = 0.5)",
+    "flagged_false_positive_clusters": [
+      {
+        "cluster_id": "cluster_0",
+        "size": 4,
+        "weight_density": 0.6,
+        "is_known_noise_bait": true,
+        "members": [
+          "ACC_N5_0",
+          "ACC_N5_1",
+          "ACC_N5_2",
+          "ACC_N5_3"
+        ],
+        "orders_count": 5,
+        "total_order_value_inr": 17642.67
+      },
+      {
+        "cluster_id": "cluster_1",
+        "size": 4,
+        "weight_density": 0.6,
+        "is_known_noise_bait": true,
+        "members": [
+          "ACC_N1_0",
+          "ACC_N1_1",
+          "ACC_N1_2",
+          "ACC_N1_3"
+        ],
+        "orders_count": 6,
+        "total_order_value_inr": 20482.54
+      },
+      {
+        "cluster_id": "cluster_5",
+        "size": 4,
+        "weight_density": 0.6,
+        "is_known_noise_bait": true,
+        "members": [
+          "ACC_N3_0",
+          "ACC_N3_1",
+          "ACC_N3_2",
+          "ACC_N3_3"
+        ],
+        "orders_count": 6,
+        "total_order_value_inr": 18435.68
+      }
+    ],
+    "exposure_summary_inr": {
+      "mean": 18853.63,
+      "median": 18435.68,
+      "min": 17642.67,
+      "max": 20482.54
+    },
+    "recommended_representative_fp_exposure_inr": 18435.68,
+    "operational_cost_components": {
+      "analyst_review_cost_per_cluster_inr": 500.0,
+      "customer_friction_cost_5pct_inr": 921.78,
+      "combined_representative_fp_cost_inr": 1421.78
+    },
+    "disclaimer": "Analyst review time and customer-friction costs are not directly observed in the synthetic dataset. Total order values represent gross financial exposure (Median ₹18,435.68/cluster), while ₹1,421.78/cluster combines manual analyst review (₹500) and customer friction (5% of order value = ₹921.78)."
+  },
+  "threshold_economic_tradeoff": [
+    {
+      "threshold": 0.3,
+      "avg_recall": 0.983,
+      "avg_false_positives": 9.9,
+      "expected_missed_rings": 0.1,
+      "expected_fn_loss_inr": 1385.98,
+      "expected_fp_combined_cost_inr": 14075.62,
+      "total_expected_cost_inr": 15461.60
+    },
+    {
+      "threshold": 0.4,
+      "avg_recall": 0.983,
+      "avg_false_positives": 7.8,
+      "expected_missed_rings": 0.1,
+      "expected_fn_loss_inr": 1385.98,
+      "expected_fp_combined_cost_inr": 11089.88,
+      "total_expected_cost_inr": 12475.86
+    },
+    {
+      "threshold": 0.5,
+      "avg_recall": 0.983,
+      "avg_false_positives": 7.7,
+      "expected_missed_rings": 0.1,
+      "expected_fn_loss_inr": 1385.98,
+      "expected_fp_combined_cost_inr": 10947.71,
+      "total_expected_cost_inr": 12333.69
+    },
+    {
+      "threshold": 0.6,
+      "avg_recall": 0.650,
+      "avg_false_positives": 3.5,
+      "expected_missed_rings": 2.1,
+      "expected_fn_loss_inr": 29105.54,
+      "expected_fp_combined_cost_inr": 4976.23,
+      "total_expected_cost_inr": 34081.77
+    },
+    {
+      "threshold": 0.7,
+      "avg_recall": 0.650,
+      "avg_false_positives": 1.2,
+      "expected_missed_rings": 2.1,
+      "expected_fn_loss_inr": 29105.54,
+      "expected_fp_combined_cost_inr": 1706.14,
+      "total_expected_cost_inr": 30811.68
+    },
+    {
+      "threshold": 0.8,
+      "avg_recall": 0.650,
+      "avg_false_positives": 1.2,
+      "expected_missed_rings": 2.1,
+      "expected_fn_loss_inr": 29105.54,
+      "expected_fp_combined_cost_inr": 1706.14,
+      "total_expected_cost_inr": 30811.68
+    }
+  ],
+  "optimal_threshold": 0.5,
+  "optimal_threshold_justification": "Threshold 0.5 achieves the global minimum total economic cost (₹12,333.69). Even under the higher combined FP cost (₹1,421.78/cluster = ₹500 review + ₹921.78 friction), threshold 0.5 easily outperforms threshold 0.6 (₹34,081.77) and threshold 0.7 (₹30,811.68) because missing real fraud rings is far costlier than manual review and customer friction."
+}
