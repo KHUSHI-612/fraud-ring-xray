@@ -1,16 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { X, Cpu, CheckCircle, Info, ShieldAlert, Award } from 'lucide-react';
+import { X, Cpu, Info, Award } from 'lucide-react';
+import { API_BASE_URL } from '../config';
 
 export default function MLValidationModal({ onClose }) {
   const [metrics, setMetrics] = useState(null);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('http://localhost:8000/ml-validation')
+    fetch(`${API_BASE_URL}/ml-validation`)
+
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         setMetrics(data);
-        setLoading(false);
       })
       .catch(() => {
         // Fallback default metrics if endpoint is starting up
@@ -26,11 +26,10 @@ export default function MLValidationModal({ onClose }) {
             { feature: 'signup_spread_minutes', coefficient: -2.304, description: 'Signup timestamp spread (in minutes)' },
             { feature: 'avg_return_rate', coefficient: 1.209, description: 'Average return rate across member accounts' },
           ],
-
         });
-        setLoading(false);
       });
   }, []);
+
 
   return (
     <div className="modal-backdrop" onClick={onClose}>

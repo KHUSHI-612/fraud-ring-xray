@@ -18,6 +18,7 @@ import {
   Scale,
   Cpu
 } from 'lucide-react';
+import { API_BASE_URL } from '../config';
 
 
 export default function AccountPanel({ accountId, clusters, evaluation, onClose }) {
@@ -35,7 +36,7 @@ export default function AccountPanel({ accountId, clusters, evaluation, onClose 
     setExplainData(null);
 
     Promise.all([
-      fetch(`http://localhost:8000/accounts/${accountId}`).then((res) => {
+      fetch(`${API_BASE_URL}/accounts/${accountId}`).then((res) => {
         if (!res.ok) {
           if (res.status === 404) {
             throw new Error(`Account '${accountId}' was not found.`);
@@ -44,10 +45,11 @@ export default function AccountPanel({ accountId, clusters, evaluation, onClose 
         }
         return res.json();
       }),
-      fetch(`http://localhost:8000/explain/${accountId}`)
+      fetch(`${API_BASE_URL}/explain/${accountId}`)
         .then((res) => (res.ok ? res.json() : null))
         .catch(() => null)
     ])
+
       .then(([acc, exp]) => {
         setAccountData(acc);
         setExplainData(exp);
@@ -147,7 +149,8 @@ export default function AccountPanel({ accountId, clusters, evaluation, onClose 
               onClick={() => {
                 setLoading(true);
                 setError(null);
-                fetch(`http://localhost:8000/accounts/${accountId}`)
+                fetch(`${API_BASE_URL}/accounts/${accountId}`)
+
                   .then((res) => res.json())
                   .then((data) => { setAccountData(data); setLoading(false); })
                   .catch((e) => { setError(e.message); setLoading(false); });

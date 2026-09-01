@@ -5,6 +5,7 @@ import AccountPanel from './components/AccountPanel';
 import EvaluationModal from './components/EvaluationModal';
 import GuardrailsModal from './components/GuardrailsModal';
 import MLValidationModal from './components/MLValidationModal';
+import { API_BASE_URL } from './config';
 
 export default function App() {
   const [clusters, setClusters] = useState([]);
@@ -29,7 +30,7 @@ export default function App() {
     setEvalError(null);
 
     // 1. Fetch Clusters
-    fetch('http://localhost:8000/clusters')
+    fetch(`${API_BASE_URL}/clusters`)
       .then((res) => {
         if (!res.ok) throw new Error(`Clusters API error: status ${res.status}`);
         return res.json();
@@ -40,12 +41,12 @@ export default function App() {
       })
       .catch((err) => {
         console.error('Error fetching clusters:', err);
-        setError('Unable to connect to http://localhost:8000/clusters.');
+        setError(`Unable to connect to ${API_BASE_URL}/clusters.`);
         setLoading(false);
       });
 
     // 2. Fetch Evaluation
-    fetch('http://localhost:8000/evaluation')
+    fetch(`${API_BASE_URL}/evaluation`)
       .then((res) => {
         if (!res.ok) throw new Error(`Evaluation API error: status ${res.status}`);
         return res.json();
@@ -56,12 +57,12 @@ export default function App() {
       })
       .catch((err) => {
         console.error('Error fetching evaluation:', err);
-        setEvalError('Unable to connect to http://localhost:8000/evaluation.');
+        setEvalError(`Unable to connect to ${API_BASE_URL}/evaluation.`);
         setEvalLoading(false);
       });
 
     // 3. Fetch All 310 Accounts for Scalability Test
-    fetch('http://localhost:8000/accounts')
+    fetch(`${API_BASE_URL}/accounts`)
       .then((res) => (res.ok ? res.json() : []))
       .then((data) => {
         if (Array.isArray(data)) {
@@ -70,6 +71,7 @@ export default function App() {
       })
       .catch((err) => console.warn('Could not fetch all accounts list:', err));
   };
+
 
   useEffect(() => {
     fetchData();
