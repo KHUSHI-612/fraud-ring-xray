@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { ShieldAlert, RefreshCw, AlertOctagon, Layers, Users, Search, BarChart3 } from 'lucide-react';
+import { ShieldAlert, RefreshCw, AlertOctagon, Layers, Users, Search, BarChart3, ShieldCheck, Cpu } from 'lucide-react';
 import GraphView from './components/GraphView';
 import AccountPanel from './components/AccountPanel';
 import EvaluationModal from './components/EvaluationModal';
+import GuardrailsModal from './components/GuardrailsModal';
+import MLValidationModal from './components/MLValidationModal';
 
 export default function App() {
   const [clusters, setClusters] = useState([]);
@@ -16,6 +18,9 @@ export default function App() {
   const [selectedAccountId, setSelectedAccountId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [showEvalModal, setShowEvalModal] = useState(false);
+  const [showGuardrailsModal, setShowGuardrailsModal] = useState(false);
+  const [showMLModal, setShowMLModal] = useState(false);
+
 
   const fetchData = () => {
     setLoading(true);
@@ -230,6 +235,16 @@ export default function App() {
           </div>
         </div>
 
+        {/* Safety & Guardrails Button */}
+        <button
+          className="guardrails-btn"
+          onClick={() => setShowGuardrailsModal(true)}
+          title="View Defense-Only Rule & Safety Guardrails"
+        >
+          <ShieldCheck size={16} />
+          <span>Guardrails</span>
+        </button>
+
         {/* Evaluation Metrics Button */}
         <button
           className="eval-btn"
@@ -238,6 +253,21 @@ export default function App() {
         >
           <BarChart3 size={16} />
           <span>Evaluation Metrics</span>
+        </button>
+
+        {/* ML Validation Button */}
+        <button
+          className="eval-btn"
+          onClick={() => setShowMLModal(true)}
+          title="View Validated ML Classifier Metrics & Feature Importance"
+          style={{
+            background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.15) 0%, rgba(126, 34, 206, 0.25) 100%)',
+            borderColor: 'rgba(168, 85, 247, 0.4)',
+            color: '#c084fc'
+          }}
+        >
+          <Cpu size={16} />
+          <span>ML Validation</span>
         </button>
 
         {/* Refresh Button */}
@@ -306,6 +336,21 @@ export default function App() {
           onRetry={fetchData}
         />
       )}
+
+      {/* Guardrails Modal Overlay */}
+      {showGuardrailsModal && (
+        <GuardrailsModal
+          onClose={() => setShowGuardrailsModal(false)}
+        />
+      )}
+
+      {/* ML Validation Modal Overlay */}
+      {showMLModal && (
+        <MLValidationModal
+          onClose={() => setShowMLModal(false)}
+        />
+      )}
     </div>
   );
 }
+

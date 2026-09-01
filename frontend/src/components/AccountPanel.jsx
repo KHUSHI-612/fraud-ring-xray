@@ -15,11 +15,14 @@ import {
   CheckCircle,
   Info,
   HelpCircle,
-  Scale
+  Scale,
+  Cpu
 } from 'lucide-react';
+
 
 export default function AccountPanel({ accountId, clusters, evaluation, onClose }) {
   const [accountData, setAccountData] = useState(null);
+  const [explainData, setExplainData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -29,9 +32,10 @@ export default function AccountPanel({ accountId, clusters, evaluation, onClose 
     setLoading(true);
     setError(null);
     setAccountData(null);
+    setExplainData(null);
 
-    fetch(`http://localhost:8000/accounts/${accountId}`)
-      .then((res) => {
+    Promise.all([
+      fetch(`http://localhost:8000/accounts/${accountId}`).then((res) => {
         if (!res.ok) {
           if (res.status === 404) {
             throw new Error(`Account '${accountId}' was not found.`);
@@ -39,9 +43,14 @@ export default function AccountPanel({ accountId, clusters, evaluation, onClose 
           throw new Error(`Failed to load account (${res.status})`);
         }
         return res.json();
-      })
-      .then((data) => {
-        setAccountData(data);
+      }),
+      fetch(`http://localhost:8000/explain/${accountId}`)
+        .then((res) => (res.ok ? res.json() : null))
+        .catch(() => null)
+    ])
+      .then(([acc, exp]) => {
+        setAccountData(acc);
+        setExplainData(exp);
         setLoading(false);
       })
       .catch((err) => {
@@ -74,26 +83,34 @@ export default function AccountPanel({ accountId, clusters, evaluation, onClose 
     }
   };
 
-  const generatePlainEnglishExplanation = (cluster, tpMatch, fpMatch) => {
-    const membersCount = cluster.size;
-    const density = cluster.weight_density.toFixed(3);
-    const signals = (cluster.signals_involved || []).map(formatSignal);
-    const signalsText = signals.join(', ');
-
-    if (tpMatch) {
-      return `This cluster of ${membersCount} accounts was flagged with a Risk/Density score of ${density} (exceeding the 0.500 threshold) due to ${signalsText.toLowerCase()}. Ground truth evaluation confirms this as a real fraud ring (${tpMatch.matched_ring}).`;
+  const getTierInfo = (tierKey) => {
+    switch (tierKey) {
+      case 'high_confidence_fraud':
+        return {
+          label: 'HIGH CONFIDENCE FRAUD',
+          classKey: 'high-fraud',
+          color: '#ef4444',
+          icon: <ShieldAlert size={14} color="#f87171" />
+        };
+      case 'needs_human_review':
+        return {
+          label: 'NEEDS HUMAN REVIEW',
+          classKey: 'needs-review',
+          color: '#f59e0b',
+          icon: <AlertTriangle size={14} color="#fbbf24" />
+        };
+      case 'likely_legitimate':
+      default:
+        return {
+          label: 'LIKELY LEGITIMATE',
+          classKey: 'likely-legit',
+          color: '#10b981',
+          icon: <ShieldCheck size={14} color="#34d399" />
+        };
     }
-
-    if (fpMatch) {
-      return `This group of ${membersCount} accounts was flagged with a Risk/Density score of ${density} based on ${signalsText.toLowerCase()}. However, ground truth evaluation confirms it is a planted false-positive noise group (e.g., a legitimate household, office, or shared network).`;
-    }
-
-    if (cluster.flagged_suspicious) {
-      return `This cluster of ${membersCount} accounts was flagged with a Risk/Density score of ${density} (exceeding the 0.500 threshold) due to ${signalsText.toLowerCase()}.`;
-    }
-
-    return `This cluster of ${membersCount} accounts has a Risk/Density score of ${density}, which is below the 0.500 suspicious threshold. It was not flagged as a fraud ring.`;
   };
+
+  const activeTier = explainData ? getTierInfo(explainData.confidence_tier) : null;
 
   return (
     <aside className="side-panel">
@@ -117,7 +134,7 @@ export default function AccountPanel({ accountId, clusters, evaluation, onClose 
         {loading && (
           <div className="state-container">
             <div className="spinner" />
-            <p>Fetching account metadata...</p>
+            <p>Fetching account metadata and explanation...</p>
           </div>
         )}
 
@@ -143,11 +160,85 @@ export default function AccountPanel({ accountId, clusters, evaluation, onClose 
 
         {!loading && !error && accountData && (
           <>
+            {/* Defense-Only Safety Note */}
+            <div className="panel-safety-banner">
+              <ShieldCheck size={16} color="#10b981" style={{ flexShrink: 0, marginTop: '2px' }} />
+              <div>
+                <p><strong>Defense-only system:</strong> Flags and explains suspicious activity. Never automatically blocks or bans accounts.</p>
+              </div>
+            </div>
+
+            {/* Dual Signal Section: Rule-Based Assessment & ML Classifier Assessment */}
+            {explainData && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {/* Rule-Based Signal */}
+                <div className="info-card explain-backend-card">
+                  <div className="card-title" style={{ justifyContent: 'space-between', width: '100%' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Scale size={14} color="#60a5fa" />
+                      Rule-Based Assessment
+                    </div>
+
+                    {activeTier && (
+                      <span className={`confidence-badge ${activeTier.classKey}`}>
+                        {activeTier.icon}
+                        <span>{activeTier.label}</span>
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="backend-explanation-text">
+                    "{explainData.explanation}"
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '12px', fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                    <span>Risk Density: <strong>{explainData.weight_density?.toFixed(3)}</strong></span>
+                    <span>Cluster: <strong>{explainData.cluster_id || 'None (Isolated)'}</strong></span>
+                  </div>
+                </div>
+
+                {/* Independent ML Classifier Signal */}
+                <div className="info-card" style={{ background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.12) 0%, rgba(17, 24, 39, 0.85) 100%)', border: '1px solid rgba(168, 85, 247, 0.35)' }}>
+                  <div className="card-title" style={{ justifyContent: 'space-between', width: '100%' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Cpu size={14} color="#c084fc" />
+                      ML Model Signal (Logistic Regression)
+                    </div>
+
+                    <span className="confidence-badge" style={{ background: 'rgba(168, 85, 247, 0.2)', color: '#c084fc', border: '1px solid rgba(168, 85, 247, 0.4)' }}>
+                      <Cpu size={12} color="#c084fc" />
+                      <span>{explainData.ml_confidence != null ? `${(explainData.ml_confidence * 100).toFixed(0)}% Fraud Prob` : 'N/A'}</span>
+                    </span>
+                  </div>
+
+                  <div style={{ marginTop: '4px' }}>
+                    <div style={{ height: '6px', background: 'rgba(255, 255, 255, 0.1)', borderRadius: '3px', overflow: 'hidden' }}>
+                      <div 
+                        style={{ 
+                          height: '100%', 
+                          width: `${(explainData.ml_confidence * 100).toFixed(0)}%`, 
+                          background: explainData.ml_confidence >= 0.5 ? 'linear-gradient(90deg, #a855f7, #c084fc)' : '#10b981',
+                          borderRadius: '3px',
+                          transition: 'width 0.4s ease'
+                        }} 
+                      />
+                    </div>
+                  </div>
+
+                  <p className="human-review-note" style={{ color: '#d8b4fe', fontStyle: 'italic', marginTop: '4px' }}>
+                    <Info size={12} color="#c084fc" style={{ flexShrink: 0, marginTop: '1px' }} />
+                    <span>ML probability is an investigative confidence signal, not an automatic fraud verdict.</span>
+                  </p>
+                </div>
+              </div>
+            )}
+
+
             {/* Cluster Memberships & Explainability Section */}
             <div className="info-card">
               <div className="card-title">
                 <ShieldAlert size={14} />
-                Cluster Explainability & Evidence Analysis ({accountClusters.length})
+                Cluster Forensic Evidence Analysis ({accountClusters.length})
               </div>
 
               {accountClusters.length === 0 ? (
@@ -171,16 +262,21 @@ export default function AccountPanel({ accountId, clusters, evaluation, onClose 
                   const isTP = !!tpMatch;
                   const isFP = !!fpMatch;
 
+                  // Endpoint threshold rule: >= 0.8 high_confidence_fraud, < 0.8 needs_human_review, unflagged likely_legitimate
+                  let clusterTierKey = 'likely_legitimate';
+                  if (isFlagged) {
+                    clusterTierKey = cluster.weight_density >= 0.8 ? 'high_confidence_fraud' : 'needs_human_review';
+                  }
+                  const clusterTier = getTierInfo(clusterTierKey);
+
                   const formattedSignals = (cluster.signals_involved || []).map(formatSignal);
-                  const signalText = formattedSignals.join(', ') || 'None';
-                  const forensicSentence = generatePlainEnglishExplanation(cluster, tpMatch, fpMatch);
 
                   return (
                     <div
                       key={cluster.cluster_id}
                       className={`cluster-badge-card ${isTP ? 'tp-card' : isFP ? 'fp-card' : isFlagged ? 'suspicious' : 'normal'}`}
                     >
-                      {/* Header */}
+                      {/* Header with Risk-Review Tier */}
                       <div className="badge-header">
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <span className="cluster-name">{cluster.cluster_id}</span>
@@ -188,23 +284,13 @@ export default function AccountPanel({ accountId, clusters, evaluation, onClose 
                             ({cluster.size} accounts)
                           </span>
                         </div>
-                        <span className={`status-badge ${isFlagged ? 'suspicious' : 'normal'}`}>
-                          {isFlagged ? 'FLAGGED' : 'NOT FLAGGED'}
+                        <span className={`confidence-badge ${clusterTier.classKey}`}>
+                          {clusterTier.icon}
+                          <span>{clusterTier.label}</span>
                         </span>
                       </div>
 
-                      {/* Plain-English Forensic Evidence Summary */}
-                      <div className="forensic-evidence-box">
-                        <div className="forensic-header">
-                          <Scale size={15} color="#60a5fa" />
-                          <span>Forensic Evidence Statement</span>
-                        </div>
-                        <p className="forensic-statement">
-                          "{forensicSentence}"
-                        </p>
-                      </div>
-
-                      {/* Prominent Outcome Badge & Text Explanation */}
+                      {/* Ground-Truth Outcome Badge & Text Explanation */}
                       <div style={{ marginTop: '4px' }}>
                         {isTP && (
                           <div className="outcome-badge tp">
@@ -230,9 +316,9 @@ export default function AccountPanel({ accountId, clusters, evaluation, onClose 
                           <div className="outcome-badge not-flagged">
                             <Info size={16} color="#9ca3af" style={{ flexShrink: 0, marginTop: '2px' }} />
                             <div>
-                              <div className="outcome-title text-not-flagged">NOT FLAGGED</div>
+                              <div className="outcome-title text-not-flagged">LIKELY LEGITIMATE — NOT FLAGGED</div>
                               <p className="outcome-explanation">
-                                Cluster density (<strong>{cluster.weight_density.toFixed(3)}</strong>) is below the minimum suspicious threshold (<strong>0.500</strong>), so it was not flagged as a fraud ring.
+                                Cluster density (<strong>{cluster.weight_density.toFixed(3)}</strong>) is below the minimum suspicious threshold (<strong>0.500</strong>). No suspicious threshold was reached.
                               </p>
                             </div>
                           </div>
@@ -278,6 +364,12 @@ export default function AccountPanel({ accountId, clusters, evaluation, onClose 
                         <div className="members-mono-list">
                           {cluster.members.join(', ')}
                         </div>
+                      </div>
+
+                      {/* Human Review Note */}
+                      <div className="human-review-note">
+                        <Info size={12} color="#9ca3af" style={{ flexShrink: 0, marginTop: '1px' }} />
+                        <span>These tiers prioritize investigation. They are not automatic fraud verdicts and should not be used as the sole basis for enforcement.</span>
                       </div>
                     </div>
                   );

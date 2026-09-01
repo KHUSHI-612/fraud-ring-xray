@@ -1,0 +1,237 @@
+[
+  {
+    "cluster_id": "cluster_0",
+    "members": [
+      "ACC_N5_0",
+      "ACC_N5_1",
+      "ACC_N5_2",
+      "ACC_N5_3"
+    ],
+    "size": 4,
+    "weight_density": 0.6,
+    "signup_spread_minutes": 64565.0,
+    "avg_return_rate": 0.25,
+    "ml_confidence": 0.057,
+    "signals_involved": [
+      "address"
+    ],
+    "flagged_suspicious": true,
+    "confidence_tier": "needs_human_review",
+    "tier_label": "Needs Human Review",
+    "tier_color": "#fbbf24"
+  },
+  {
+    "cluster_id": "cluster_1",
+    "members": [
+      "ACC_N1_0",
+      "ACC_N1_1",
+      "ACC_N1_2",
+      "ACC_N1_3"
+    ],
+    "size": 4,
+    "weight_density": 0.6,
+    "signup_spread_minutes": 104723.0,
+    "avg_return_rate": 0.25,
+    "ml_confidence": 0.006,
+    "signals_involved": [
+      "address"
+    ],
+    "flagged_suspicious": true,
+    "confidence_tier": "needs_human_review",
+    "tier_label": "Needs Human Review",
+    "tier_color": "#fbbf24"
+  },
+  {
+    "cluster_id": "cluster_2",
+    "members": [
+      "ACC_N2_0",
+      "ACC_N2_1",
+      "ACC_N2_2",
+      "ACC_N2_3"
+    ],
+    "size": 4,
+    "weight_density": 0.3,
+    "signup_spread_minutes": 72620.0,
+    "avg_return_rate": 0.083,
+    "ml_confidence": 0.0092,
+    "signals_involved": [
+      "ip"
+    ],
+    "flagged_suspicious": false,
+    "confidence_tier": "likely_legitimate",
+    "tier_label": "Likely Legitimate",
+    "tier_color": "#34d399"
+  },
+  {
+    "cluster_id": "cluster_3",
+    "members": [
+      "ACC_N4_0",
+      "ACC_N4_1",
+      "ACC_N4_2"
+    ],
+    "size": 3,
+    "weight_density": 0.3,
+    "signup_spread_minutes": 102009.0,
+    "avg_return_rate": 0.0,
+    "ml_confidence": 0.0004,
+    "signals_involved": [
+      "ip"
+    ],
+    "flagged_suspicious": false,
+    "confidence_tier": "likely_legitimate",
+    "tier_label": "Likely Legitimate",
+    "tier_color": "#34d399"
+  },
+  {
+    "cluster_id": "cluster_4",
+    "members": [
+      "ACC_RING_B1_0",
+      "ACC_RING_B1_1",
+      "ACC_RING_B1_2",
+      "ACC_RING_B1_3",
+      "ACC_RING_B1_4",
+      "ACC_RING_B1_5"
+    ],
+    "size": 6,
+    "weight_density": 0.633,
+    "signup_spread_minutes": 0.0,
+    "avg_return_rate": 0.444,
+    "ml_confidence": 0.9862,
+    "signals_involved": [
+      "address",
+      "behavioral"
+    ],
+    "flagged_suspicious": true,
+    "confidence_tier": "needs_human_review",
+    "tier_label": "Needs Human Review",
+    "tier_color": "#fbbf24"
+  },
+  {
+    "cluster_id": "cluster_5",
+    "members": [
+      "ACC_N3_0",
+      "ACC_N3_1",
+      "ACC_N3_2",
+      "ACC_N3_3"
+    ],
+    "size": 4,
+    "weight_density": 0.6,
+    "signup_spread_minutes": 54844.0,
+    "avg_return_rate": 0.0,
+    "ml_confidence": 0.0399,
+    "signals_involved": [
+      "address"
+    ],
+    "flagged_suspicious": true,
+    "confidence_tier": "needs_human_review",
+    "tier_label": "Needs Human Review",
+    "tier_color": "#fbbf24"
+  },
+  {
+    "cluster_id": "cluster_6",
+    "members": [
+      "ACC_RING_B2_0",
+      "ACC_RING_B2_1",
+      "ACC_RING_B2_2",
+      "ACC_RING_B2_3"
+    ],
+    "size": 4,
+    "weight_density": 0.85,
+    "signup_spread_minutes": 0.0,
+    "avg_return_rate": 0.417,
+    "ml_confidence": 0.8989,
+    "signals_involved": [
+      "address",
+      "behavioral"
+    ],
+    "flagged_suspicious": true,
+    "confidence_tier": "needs_human_review",
+    "tier_label": "Needs Human Review",
+    "tier_color": "#fbbf24"
+  },
+  {
+    "cluster_id": "cluster_7",
+    "members": [
+      "ACC_N0_0",
+      "ACC_N0_1",
+      "ACC_N0_2"
+    ],
+    "size": 3,
+    "weight_density": 0.3,
+    "signup_spread_minutes": 84260.0,
+    "avg_return_rate": 0.333,
+    "ml_confidence": 0.0034,
+    "signals_involved": [
+      "ip"
+    ],
+    "flagged_suspicious": false,
+    "confidence_tier": "likely_legitimate",
+    "tier_label": "Likely Legitimate",
+    "tier_color": "#34d399"
+  },
+  {
+    "cluster_id": "cluster_8",
+    "members": [
+      "ACC_RING_A1_0",
+      "ACC_RING_A1_1",
+      "ACC_RING_A1_2",
+      "ACC_RING_A1_3",
+      "ACC_RING_A1_4"
+    ],
+    "size": 5,
+    "weight_density": 1.5,
+    "signup_spread_minutes": 0.0,
+    "avg_return_rate": 0.633,
+    "ml_confidence": 0.9974,
+    "signals_involved": [
+      "behavioral",
+      "device"
+    ],
+    "flagged_suspicious": true,
+    "confidence_tier": "high_confidence_fraud",
+    "tier_label": "High Confidence Fraud",
+    "tier_color": "#f87171"
+  },
+  {
+    "cluster_id": "cluster_9",
+    "members": [
+      "ACC_RING_C2_0",
+      "ACC_RING_C2_2",
+      "ACC_RING_C2_3"
+    ],
+    "size": 3,
+    "weight_density": 0.5,
+    "signup_spread_minutes": 11.0,
+    "avg_return_rate": 0.833,
+    "ml_confidence": 0.825,
+    "signals_involved": [
+      "behavioral"
+    ],
+    "flagged_suspicious": true,
+    "confidence_tier": "needs_human_review",
+    "tier_label": "Needs Human Review",
+    "tier_color": "#fbbf24"
+  },
+  {
+    "cluster_id": "cluster_10",
+    "members": [
+      "ACC_RING_A2_0",
+      "ACC_RING_A2_1",
+      "ACC_RING_A2_2",
+      "ACC_RING_A2_3"
+    ],
+    "size": 4,
+    "weight_density": 1.5,
+    "signup_spread_minutes": 0.0,
+    "avg_return_rate": 0.875,
+    "ml_confidence": 0.9963,
+    "signals_involved": [
+      "behavioral",
+      "device"
+    ],
+    "flagged_suspicious": true,
+    "confidence_tier": "high_confidence_fraud",
+    "tier_label": "High Confidence Fraud",
+    "tier_color": "#f87171"
+  }
+]

@@ -1,0 +1,72 @@
+{
+  "total_clusters_found": 11,
+  "total_flagged_suspicious": 8,
+  "true_positives": [
+    {
+      "cluster_id": "cluster_4",
+      "matched_ring": "RING_B1"
+    },
+    {
+      "cluster_id": "cluster_6",
+      "matched_ring": "RING_B2"
+    },
+    {
+      "cluster_id": "cluster_8",
+      "matched_ring": "RING_A1"
+    },
+    {
+      "cluster_id": "cluster_9",
+      "matched_ring": "RING_C2"
+    },
+    {
+      "cluster_id": "cluster_10",
+      "matched_ring": "RING_A2"
+    }
+  ],
+  "false_positives": [
+    {
+      "cluster_id": "cluster_0",
+      "members": [
+        "ACC_N5_0",
+        "ACC_N5_1",
+        "ACC_N5_2",
+        "ACC_N5_3"
+      ],
+      "is_known_noise_bait": true
+    },
+    {
+      "cluster_id": "cluster_1",
+      "members": [
+        "ACC_N1_0",
+        "ACC_N1_1",
+        "ACC_N1_2",
+        "ACC_N1_3"
+      ],
+      "is_known_noise_bait": true
+    },
+    {
+      "cluster_id": "cluster_5",
+      "members": [
+        "ACC_N3_0",
+        "ACC_N3_1",
+        "ACC_N3_2",
+        "ACC_N3_3"
+      ],
+      "is_known_noise_bait": true
+    }
+  ],
+  "precision": 0.625,
+  "recall": 0.833,
+  "rings_caught": 5,
+  "rings_total": 6,
+  "rings_missed": [
+    "RING_C1"
+  ],
+  "per_ring_member_recovery_rate": {
+    "RING_B1": 1.0,
+    "RING_B2": 1.0,
+    "RING_A1": 1.0,
+    "RING_C2": 0.75,
+    "RING_A2": 1.0
+  }
+}
