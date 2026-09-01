@@ -186,6 +186,30 @@ body {
   border: 1px solid #4b5563;
 }
 
+/* Safety & Guardrails Button */
+.guardrails-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.25) 100%);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  color: #34d399;
+  padding: 5px 14px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.15);
+}
+
+.guardrails-btn:hover {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.25) 0%, rgba(5, 150, 105, 0.35) 100%);
+  border-color: rgba(52, 211, 153, 0.6);
+  color: #ffffff;
+  box-shadow: 0 0 16px rgba(16, 185, 129, 0.3);
+}
+
 /* Evaluation Button */
 .eval-btn {
   display: flex;
@@ -210,112 +234,200 @@ body {
   box-shadow: 0 0 16px rgba(59, 130, 246, 0.3);
 }
 
-/* On-Screen Compact Detection Performance Overlay Card */
-.performance-overlay-card {
-  position: absolute;
-  bottom: 20px;
-  left: 20px;
-  z-index: 15;
-  width: 360px;
-  background: rgba(17, 24, 39, 0.92);
-  backdrop-filter: blur(12px);
-  border: 1px solid var(--border-color);
+/* GET /explain Backend Card */
+.explain-backend-card {
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.12) 0%, rgba(17, 24, 39, 0.85) 100%);
+  border: 1px solid rgba(59, 130, 246, 0.35);
   border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-  overflow: hidden;
-  font-size: 0.82rem;
-}
-
-.overlay-header {
-  padding: 10px 14px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  cursor: pointer;
-  background: rgba(255, 255, 255, 0.02);
-  border-bottom: 1px solid var(--border-color);
-}
-
-.overlay-header:hover {
-  background: rgba(255, 255, 255, 0.05);
-}
-
-.overlay-title {
-  font-weight: 700;
-  font-size: 0.85rem;
-  color: var(--text-primary);
-}
-
-.overlay-toggle-btn {
-  background: transparent;
-  border: none;
-  color: var(--text-muted);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.overlay-body {
-  padding: 12px 14px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-.overlay-metrics-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
-}
-
-.overlay-metric {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  padding: 6px 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.ol-label {
-  font-size: 0.7rem;
-  color: var(--text-muted);
-}
-
-.ol-val {
-  font-size: 0.95rem;
-  font-weight: 700;
-  font-family: var(--font-mono);
+.backend-explanation-text {
+  font-size: 0.86rem;
+  font-style: italic;
   color: var(--text-primary);
+  line-height: 1.5;
+  background: rgba(0, 0, 0, 0.25);
+  padding: 10px 12px;
+  border-radius: 8px;
+  border-left: 3px solid #60a5fa;
 }
 
-.ol-val.blue {
-  color: #60a5fa;
+/* Confidence Badges (Red / Amber / Green) */
+.confidence-badge {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-transform: uppercase;
 }
 
-.ol-val.emerald {
+.confidence-badge.high-fraud {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+.confidence-badge.needs-review {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+.confidence-badge.likely-legit {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.4);
+}
+
+/* Guardrail Banners in Modal */
+.guardrail-banner {
+  border-radius: 10px;
+  padding: 14px 16px;
+  display: flex;
+  gap: 12px;
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+.guardrail-banner.defense-only {
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.guardrail-banner.human-review {
+  background: rgba(59, 130, 246, 0.08);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.guardrail-title {
+  font-weight: 700;
+  font-size: 0.88rem;
+  margin-bottom: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.guardrail-title.green {
   color: #34d399;
 }
 
-.ol-val.amber {
-  color: #fbbf24;
+.guardrail-title.blue {
+  color: #60a5fa;
 }
 
-.ol-val.red {
-  color: #f87171;
+.guardrail-text {
+  color: var(--text-primary);
 }
 
-.overlay-limitation-box {
-  background: rgba(245, 158, 11, 0.08);
-  border: 1px solid rgba(245, 158, 11, 0.25);
+/* Tiers List */
+.tiers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.tier-item {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
-  padding: 8px 10px;
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tier-badge {
+  font-weight: 800;
+  font-size: 0.8rem;
+  letter-spacing: 0.03em;
+  padding: 2px 8px;
+  border-radius: 6px;
+  display: inline-block;
+  width: fit-content;
+}
+
+.tier-badge.high {
+  background: rgba(239, 68, 68, 0.18);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+.tier-badge.review {
+  background: rgba(245, 158, 11, 0.18);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+.tier-badge.legit {
+  background: rgba(107, 114, 128, 0.18);
+  color: #9ca3af;
+  border: 1px solid rgba(107, 114, 128, 0.35);
+}
+
+.tier-desc {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+/* Risk Tier Badges in Account Panel */
+.risk-tier-badge {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  display: inline-flex;
+  align-items: center;
+  text-transform: uppercase;
+}
+
+.risk-tier-badge.high {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+.risk-tier-badge.review {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+.risk-tier-badge.legit {
+  background: rgba(107, 114, 128, 0.18);
+  color: #9ca3af;
+  border: 1px solid rgba(107, 114, 128, 0.35);
+}
+
+.panel-safety-banner {
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  border-radius: 8px;
+  padding: 10px 12px;
   display: flex;
   gap: 8px;
-  font-size: 0.76rem;
-  color: #fef08a;
+  font-size: 0.78rem;
+  color: #a7f3d0;
+  line-height: 1.4;
+}
+
+.human-review-note {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  display: flex;
+  gap: 6px;
+  font-style: italic;
+  margin-top: 6px;
   line-height: 1.35;
 }
 
@@ -491,28 +603,28 @@ body {
 /* Metrics Grid */
 .metrics-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
 }
 
 .metric-card {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: 12px;
-  padding: 16px;
+  padding: 14px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 
 .metric-label {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: var(--text-muted);
   font-weight: 500;
 }
 
 .metric-value {
-  font-size: 1.8rem;
+  font-size: 1.6rem;
   font-weight: 800;
   letter-spacing: -0.03em;
   color: var(--text-primary);
@@ -528,13 +640,18 @@ body {
   text-shadow: 0 0 16px rgba(16, 185, 129, 0.4);
 }
 
+.metric-value.amber {
+  color: #fbbf24;
+  text-shadow: 0 0 16px rgba(245, 158, 11, 0.4);
+}
+
 .metric-value.red {
   color: #f87171;
   text-shadow: 0 0 16px rgba(239, 68, 68, 0.4);
 }
 
 .metric-subtext {
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   color: var(--text-muted);
 }
 

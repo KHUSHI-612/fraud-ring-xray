@@ -87,7 +87,7 @@ export default function GraphView({
       });
     }
 
-    // Format nodes for vis-network
+    // Format nodes for vis-network (Sleek, compact node sizing from original clean design)
     const nodes = Array.from(nodesMap.values()).map((node) => {
       // Isolated node styling (dimmed/subtle)
       if (node.isIsolated) {
@@ -96,7 +96,7 @@ export default function GraphView({
           label: node.label,
           title: `Account ID: ${node.id}\nStatus: Isolated (No shared signals/edges)`,
           shape: 'dot',
-          size: 8,
+          size: 7,
           font: {
             color: '#6b7280',
             size: 9,
@@ -122,7 +122,7 @@ export default function GraphView({
         };
       }
 
-      // Clustered node styling (Red for suspicious, Gray for normal)
+      // Clustered node styling (Small, clean dots as requested)
       const isSus = node.isSuspicious;
       const clusterDetails = node.clusters
         .map((cId) => {
@@ -138,199 +138,199 @@ export default function GraphView({
         label: node.label,
         title: titleTooltip,
         shape: 'dot',
-        size: isSus ? 20 : 15,
+        size: isSus ? 11 : 9,
         font: {
-          color: '#ffffff',
-          size: 13,
+          color: '#e5e7eb',
+          size: 11,
           face: 'JetBrains Mono, monospace',
-          strokeWidth: 3,
+          strokeWidth: 2,
           strokeColor: '#0b0f19',
         },
         color: {
-          background: isSus ? '#dc2626' : '#4b5563',
-          border: isSus ? '#ef4444' : '#9ca3af',
+          background: isSus ? '#ef4444' : '#6b7280',
+          border: isSus ? '#f87171' : '#9ca3af',
           highlight: {
-            background: isSus ? '#f87171' : '#6b7280',
+            background: isSus ? '#f87171' : '#9ca3af',
             border: '#ffffff',
           },
           hover: {
-            background: isSus ? '#f87171' : '#6b7280',
+            background: isSus ? '#f87171' : '#9ca3af',
             border: '#ffffff',
           },
         },
-        borderWidth: 2,
+        borderWidth: 1.5,
         borderWidthSelected: 3,
-        shadow: isSus
-          ? { enabled: true, color: 'rgba(239, 68, 68, 0.5)', size: 12, x: 0, y: 0 }
-          : false,
+        shadow: isSus ? { enabled: true, color: 'rgba(239, 68, 68, 0.35)', size: 6 } : false,
       };
     });
 
     // Format edges for vis-network
-    const edges = Array.from(edgeSet.values()).map((edge) => {
-      const isSus = edge.isSuspicious;
-      return {
-        id: edge.id,
-        from: edge.from,
-        to: edge.to,
-        width: isSus ? 2.5 : 1.2,
-        color: {
-          color: isSus ? '#ef4444' : '#4b5563',
-          highlight: isSus ? '#f87171' : '#9ca3af',
-          hover: isSus ? '#f87171' : '#9ca3af',
-          opacity: isSus ? 0.85 : 0.45,
-        },
-      };
-    });
+    const edges = Array.from(edgeSet.values()).map((edge) => ({
+      id: edge.id,
+      from: edge.from,
+      to: edge.to,
+      width: edge.isSuspicious ? 1.5 : 1,
+      color: {
+        color: edge.isSuspicious ? 'rgba(239, 68, 68, 0.45)' : 'rgba(156, 163, 175, 0.25)',
+        highlight: '#ef4444',
+        hover: '#ef4444',
+      },
+      smooth: {
+        type: 'continuous',
+      },
+    }));
 
     const data = { nodes, edges };
 
+    // Original clean physics options
     const options = {
+      nodes: {
+        borderWidth: 1.5,
+      },
+      edges: {
+        smooth: {
+          type: 'continuous',
+          forceDirection: 'none',
+        },
+      },
       physics: {
         enabled: true,
         solver: 'forceAtlas2Based',
         forceAtlas2Based: {
-          gravitationalConstant: showAllAccounts ? -20 : -40,
-          centralGravity: 0.005,
-          springLength: showAllAccounts ? 120 : 110,
-          springConstant: 0.05,
+          gravitationalConstant: -30,
+          centralGravity: 0.008,
+          springLength: 75,
+          springConstant: 0.08,
           damping: 0.4,
           avoidOverlap: 0.8,
         },
+        maxVelocity: 50,
+        minVelocity: 0.1,
         stabilization: {
           enabled: true,
-          iterations: showAllAccounts ? 220 : 150,
+          iterations: 150,
           updateInterval: 25,
         },
       },
       interaction: {
         hover: true,
         tooltipDelay: 100,
-        dragNodes: true,
-        dragView: true,
-        zoomView: true,
         selectable: true,
+        selectConnectedEdges: false,
       },
     };
 
+    // Instantiate vis-network
     const network = new Network(containerRef.current, data, options);
     networkRef.current = network;
 
-    // Draw prominent Cluster Labels dynamically above each connected cluster
+    // Handle node selection
+    network.on('selectNode', (params) => {
+      if (params.nodes && params.nodes.length > 0) {
+        const selectedId = params.nodes[0];
+        if (onSelectAccount) {
+          onSelectAccount(selectedId);
+        }
+      }
+    });
+
+    // Handle click on canvas background (deselect)
+    network.on('deselectNode', () => {
+      if (onSelectAccount) {
+        onSelectAccount(null);
+      }
+    });
+
+    // Draw cluster header pill badges on graph canvas safely above top-most node
     network.on('afterDrawing', (ctx) => {
-      if (!clusters || clusters.length === 0) return;
-
-      const nodePositions = network.getPositions();
-
       clusters.forEach((cluster) => {
         const members = cluster.members || [];
         if (members.length === 0) return;
 
-        let minX = Infinity, maxX = -Infinity;
-        let minY = Infinity, maxY = -Infinity;
+        let sumX = 0;
+        let minY = Infinity;
         let count = 0;
 
         members.forEach((accId) => {
-          const pos = nodePositions[accId];
-          if (pos) {
-            minX = Math.min(minX, pos.x);
-            maxX = Math.max(maxX, pos.x);
-            minY = Math.min(minY, pos.y);
-            maxY = Math.max(maxY, pos.y);
-            count++;
+          if (nodesMap.has(accId)) {
+            const pos = network.getPositions([accId])[accId];
+            if (pos) {
+              sumX += pos.x;
+              if (pos.y < minY) minY = pos.y;
+              count++;
+            }
           }
         });
 
-        if (count === 0) return;
+        if (count === 0 || minY === Infinity) return;
 
-        const centerX = (minX + maxX) / 2;
-        const topY = minY - 34;
+        const avgX = sumX / count;
 
         const matchedRing = ringMap.get(cluster.cluster_id);
-        const cNum = cluster.cluster_id.replace('cluster_', '');
-        
-        let labelText = `CLUSTER ${cNum}`;
-        if (matchedRing) {
-          const ringClean = matchedRing.replace('RING_', '');
-          labelText = `CLUSTER ${cNum} • RING ${ringClean}`;
-        }
+        const clusterLabelText = matchedRing
+          ? `${cluster.cluster_id.toUpperCase()} • ${matchedRing}`
+          : cluster.cluster_id;
 
         const isSuspicious = cluster.flagged_suspicious;
-        const isTruePositive = !!matchedRing;
 
         ctx.save();
-        ctx.font = 'bold 12px "JetBrains Mono", Inter, sans-serif';
-        const textWidth = ctx.measureText(labelText).width;
-        const paddingX = 10;
-        const paddingY = 4;
-        const badgeWidth = textWidth + paddingX * 2;
-        const badgeHeight = 24;
-        const badgeX = centerX - badgeWidth / 2;
-        const badgeY = topY - badgeHeight / 2;
-        const radius = 6;
+        ctx.font = 'bold 10px JetBrains Mono, monospace';
 
+        const textWidth = ctx.measureText(clusterLabelText).width;
+        const paddingX = 8;
+        const rectWidth = textWidth + paddingX * 2;
+        const rectHeight = 18;
+
+        const rectX = avgX - rectWidth / 2;
+        // Position badge safely 24px above the top-most node in the cluster
+        const rectY = minY - 24;
+
+        // Badge Background Pill
         ctx.beginPath();
-        if (typeof ctx.roundRect === 'function') {
-          ctx.roundRect(badgeX, badgeY, badgeWidth, badgeHeight, radius);
-        } else {
-          ctx.rect(badgeX, badgeY, badgeWidth, badgeHeight);
-        }
+        const radius = 9;
+        ctx.roundRect(rectX, rectY, rectWidth, rectHeight, radius);
 
-        if (isTruePositive) {
-          ctx.fillStyle = 'rgba(185, 28, 28, 0.95)';
-          ctx.strokeStyle = '#f87171';
-          ctx.lineWidth = 1.8;
-        } else if (isSuspicious) {
-          ctx.fillStyle = 'rgba(153, 27, 27, 0.9)';
-          ctx.strokeStyle = '#ef4444';
-          ctx.lineWidth = 1.2;
+        if (isSuspicious) {
+          ctx.fillStyle = 'rgba(239, 68, 68, 0.9)';
+          ctx.shadowColor = 'rgba(239, 68, 68, 0.4)';
+          ctx.shadowBlur = 6;
         } else {
           ctx.fillStyle = 'rgba(31, 41, 55, 0.85)';
-          ctx.strokeStyle = '#6b7280';
-          ctx.lineWidth = 1.2;
+          ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+          ctx.shadowBlur = 4;
         }
         ctx.fill();
+
+        ctx.strokeStyle = isSuspicious ? '#f87171' : '#6b7280';
+        ctx.lineWidth = 1;
         ctx.stroke();
 
+        // Badge Text
+        ctx.shadowBlur = 0;
         ctx.fillStyle = '#ffffff';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText(labelText, centerX, topY);
+        ctx.fillText(clusterLabelText, avgX, rectY + rectHeight / 2);
 
         ctx.restore();
       });
     });
 
-    // Node select event
-    network.on('selectNode', (params) => {
-      if (params.nodes && params.nodes.length > 0) {
-        onSelectAccount(params.nodes[0]);
-      }
-    });
-
-    // Deselect / Canvas click event
-    network.on('deselectNode', () => {
-      onSelectAccount(null);
-    });
-
-    network.on('click', (params) => {
-      if (params.nodes.length === 0) {
-        onSelectAccount(null);
-      }
-    });
-
     return () => {
-      network.destroy();
+      if (networkRef.current) {
+        networkRef.current.destroy();
+        networkRef.current = null;
+      }
     };
-  }, [clusters, evaluation, allAccountIds, showAllAccounts]);
+  }, [clusters, evaluation, showAllAccounts, allAccountIds]);
 
-  // Keep network selection in sync if changed from parent
+  // Handle selectedAccountId highlight
   useEffect(() => {
-    if (networkRef.current) {
-      if (selectedAccountId) {
+    if (networkRef.current && selectedAccountId) {
+      try {
         networkRef.current.selectNodes([selectedAccountId]);
-      } else {
-        networkRef.current.unselectAll();
+      } catch (err) {
+        // Node might not be present in current view mode
       }
     }
   }, [selectedAccountId]);

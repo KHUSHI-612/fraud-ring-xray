@@ -150,6 +150,7 @@ export default function EvaluationModal({ evaluation, loading, error, onClose, o
                   <strong>Known limitation:</strong> RING_C1 is currently missed because its behavioral signals are split across signup-time buckets.
                 </p>
               </div>
+
             </>
           )}
         </div>

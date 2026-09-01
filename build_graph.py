@@ -123,7 +123,48 @@ def behavioral_signal_boost(G: nx.Graph, accounts: pd.DataFrame, orders: pd.Data
                     G.add_edge(a, b, weight=w, signals=["behavioral"])
 
 
-def find_clusters(G: nx.Graph):
+
+def confidence_tier(weight_density: float) -> dict:
+    """
+    Single source of truth for confidence tiers. Both the graph coloring
+    and the /explain endpoint must call THIS function -- never recompute
+    tiers separately, or they will drift apart (as happened before).
+
+    Tiers are defined as MULTIPLES of MIN_CLUSTER_WEIGHT_DENSITY (0.5),
+    the one threshold we actually validated with a 10-seed sweep --
+    not as a second, ungrounded cutoff like a flat 0.8.
+
+    - likely_legitimate:     density < 0.5   (below the flagging line)
+    - needs_human_review:    0.5 <= density < 1.0   (flagged, but not double the bar)
+    - high_confidence_fraud: density >= 1.0   (at least double our evidence-backed bar)
+    """
+    if weight_density < MIN_CLUSTER_WEIGHT_DENSITY:
+        return {"tier": "likely_legitimate", "label": "Likely Legitimate", "color": "#34d399"}
+    elif weight_density < MIN_CLUSTER_WEIGHT_DENSITY * 2:
+        return {"tier": "needs_human_review", "label": "Needs Human Review", "color": "#fbbf24"}
+    else:
+        return {"tier": "high_confidence_fraud", "label": "High Confidence Fraud", "color": "#f87171"}
+
+
+from ml_classifier_cv import predict_cluster_ml_confidence
+
+
+def find_clusters(G: nx.Graph, accounts: pd.DataFrame = None, orders: pd.DataFrame = None):
+    acc_time_map = {}
+    if accounts is not None:
+        accounts_df = accounts.copy()
+        accounts_df["signup_date"] = pd.to_datetime(accounts_df["signup_date"])
+        acc_time_map = accounts_df.set_index("account_id")["signup_date"].to_dict()
+
+    ret_dict = {}
+    if orders is not None:
+        order_stats = orders.groupby("account_id").agg(
+            n_orders=("order_id", "count"),
+            n_returned=("status", lambda s: (s.isin(["returned", "disputed"])).sum()),
+        )
+        order_stats["return_rate"] = order_stats["n_returned"] / order_stats["n_orders"]
+        ret_dict = order_stats["return_rate"].to_dict()
+
     clusters = []
     for component in nx.connected_components(G):
         if len(component) < 2:
@@ -138,14 +179,35 @@ def find_clusters(G: nx.Graph):
         for _, _, d in subgraph.edges(data=True):
             all_signals.update(d["signals"])
 
+        times = [acc_time_map[m] for m in component if m in acc_time_map]
+        signup_spread_minutes = (max(times) - min(times)).total_seconds() / 60.0 if len(times) > 1 else 0.0
+
+        returns = [ret_dict.get(m, 0.0) for m in component]
+        avg_return_rate = sum(returns) / len(returns) if returns else 0.0
+
+        ml_conf = predict_cluster_ml_confidence(
+            size=n_nodes,
+            weight_density=weight_density,
+            signup_spread_minutes=signup_spread_minutes,
+            avg_return_rate=avg_return_rate
+        )
+
+        tier_info = confidence_tier(weight_density)
+
         clusters.append(
             {
                 "cluster_id": f"cluster_{len(clusters)}",
                 "members": sorted(component),
                 "size": n_nodes,
                 "weight_density": round(weight_density, 3),
+                "signup_spread_minutes": round(signup_spread_minutes, 1),
+                "avg_return_rate": round(avg_return_rate, 3),
+                "ml_confidence": ml_conf,
                 "signals_involved": sorted(all_signals),
                 "flagged_suspicious": weight_density >= MIN_CLUSTER_WEIGHT_DENSITY,
+                "confidence_tier": tier_info["tier"],
+                "tier_label": tier_info["label"],
+                "tier_color": tier_info["color"],
             }
         )
     return clusters
@@ -222,7 +284,8 @@ def main():
     accounts, orders = load_data()
     G = build_graph(accounts)
     behavioral_signal_boost(G, accounts, orders)
-    clusters = find_clusters(G)
+    clusters = find_clusters(G, accounts, orders)
+
 
     with open(os.path.join(DATA_DIR, "clusters.json"), "w") as f:
         json.dump(clusters, f, indent=2)
