@@ -1,0 +1,38 @@
+[
+  {
+    "threshold": 0.3,
+    "avg_precision": 0.395,
+    "avg_recall": 0.983,
+    "avg_false_positives": 9.9
+  },
+  {
+    "threshold": 0.4,
+    "avg_precision": 0.455,
+    "avg_recall": 0.983,
+    "avg_false_positives": 7.8
+  },
+  {
+    "threshold": 0.5,
+    "avg_precision": 0.458,
+    "avg_recall": 0.983,
+    "avg_false_positives": 7.7
+  },
+  {
+    "threshold": 0.6,
+    "avg_precision": 0.539,
+    "avg_recall": 0.65,
+    "avg_false_positives": 3.5
+  },
+  {
+    "threshold": 0.7,
+    "avg_precision": 0.794,
+    "avg_recall": 0.65,
+    "avg_false_positives": 1.2
+  },
+  {
+    "threshold": 0.8,
+    "avg_precision": 0.794,
+    "avg_recall": 0.65,
+    "avg_false_positives": 1.2
+  }
+]

@@ -1,0 +1,134 @@
+{
+  "rings": {
+    "RING_A1": {
+      "type": "device_share",
+      "description": "Shared device fingerprint",
+      "members": [
+        "ACC_RING_A1_0",
+        "ACC_RING_A1_1",
+        "ACC_RING_A1_2",
+        "ACC_RING_A1_3",
+        "ACC_RING_A1_4"
+      ],
+      "label": "fraud_ring"
+    },
+    "RING_A2": {
+      "type": "device_share",
+      "description": "Shared device fingerprint (smaller)",
+      "members": [
+        "ACC_RING_A2_0",
+        "ACC_RING_A2_1",
+        "ACC_RING_A2_2",
+        "ACC_RING_A2_3"
+      ],
+      "label": "fraud_ring"
+    },
+    "RING_B1": {
+      "type": "address_share",
+      "description": "Same freight-forwarder-style shipping address",
+      "members": [
+        "ACC_RING_B1_0",
+        "ACC_RING_B1_1",
+        "ACC_RING_B1_2",
+        "ACC_RING_B1_3",
+        "ACC_RING_B1_4",
+        "ACC_RING_B1_5"
+      ],
+      "label": "fraud_ring"
+    },
+    "RING_B2": {
+      "type": "address_share",
+      "description": "Same shipping address, different payment methods",
+      "members": [
+        "ACC_RING_B2_0",
+        "ACC_RING_B2_1",
+        "ACC_RING_B2_2",
+        "ACC_RING_B2_3"
+      ],
+      "label": "fraud_ring"
+    },
+    "RING_C1": {
+      "type": "behavioral",
+      "description": "Signed up within minutes, similar order values, high return rate",
+      "members": [
+        "ACC_RING_C1_0",
+        "ACC_RING_C1_1",
+        "ACC_RING_C1_2",
+        "ACC_RING_C1_3",
+        "ACC_RING_C1_4"
+      ],
+      "label": "fraud_ring"
+    },
+    "RING_C2": {
+      "type": "behavioral",
+      "description": "Signed up within minutes, high early-return rate",
+      "members": [
+        "ACC_RING_C2_0",
+        "ACC_RING_C2_1",
+        "ACC_RING_C2_2",
+        "ACC_RING_C2_3"
+      ],
+      "label": "fraud_ring"
+    }
+  },
+  "noise_groups": {
+    "NOISE_0": {
+      "shared_signal": "ip",
+      "members": [
+        "ACC_N0_0",
+        "ACC_N0_1",
+        "ACC_N0_2"
+      ],
+      "label": "legit_false_positive_bait"
+    },
+    "NOISE_1": {
+      "shared_signal": "address",
+      "members": [
+        "ACC_N1_0",
+        "ACC_N1_1",
+        "ACC_N1_2",
+        "ACC_N1_3"
+      ],
+      "label": "legit_false_positive_bait"
+    },
+    "NOISE_2": {
+      "shared_signal": "ip",
+      "members": [
+        "ACC_N2_0",
+        "ACC_N2_1",
+        "ACC_N2_2",
+        "ACC_N2_3"
+      ],
+      "label": "legit_false_positive_bait"
+    },
+    "NOISE_3": {
+      "shared_signal": "address",
+      "members": [
+        "ACC_N3_0",
+        "ACC_N3_1",
+        "ACC_N3_2",
+        "ACC_N3_3"
+      ],
+      "label": "legit_false_positive_bait"
+    },
+    "NOISE_4": {
+      "shared_signal": "ip",
+      "members": [
+        "ACC_N4_0",
+        "ACC_N4_1",
+        "ACC_N4_2"
+      ],
+      "label": "legit_false_positive_bait"
+    },
+    "NOISE_5": {
+      "shared_signal": "address",
+      "members": [
+        "ACC_N5_0",
+        "ACC_N5_1",
+        "ACC_N5_2",
+        "ACC_N5_3"
+      ],
+      "label": "legit_false_positive_bait"
+    }
+  }
+}
