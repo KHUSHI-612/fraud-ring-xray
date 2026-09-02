@@ -1,5 +1,6 @@
+// Fraud Ring X-Ray UI Dashboard
 import React, { useEffect, useState } from 'react';
-import { ShieldAlert, RefreshCw, AlertOctagon, Layers, Users, Search, BarChart3, ShieldCheck, Cpu } from 'lucide-react';
+import { ShieldAlert, AlertOctagon, Layers, Users, Search, ShieldCheck, User, Settings } from 'lucide-react';
 import GraphView from './components/GraphView';
 import AccountPanel from './components/AccountPanel';
 import EvaluationModal from './components/EvaluationModal';
@@ -18,10 +19,9 @@ export default function App() {
   const [evalError, setEvalError] = useState(null);
   const [selectedAccountId, setSelectedAccountId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [showEvalModal, setShowEvalModal] = useState(false);
-  const [showGuardrailsModal, setShowGuardrailsModal] = useState(false);
-  const [showMLModal, setShowMLModal] = useState(false);
-
+  
+  // Top Navigation Tab State: 'investigations' | 'guardrails' | 'evaluation' | 'ml'
+  const [activeTab, setActiveTab] = useState('investigations');
 
   const fetchData = () => {
     setLoading(true);
@@ -61,7 +61,7 @@ export default function App() {
         setEvalLoading(false);
       });
 
-    // 3. Fetch All 310 Accounts for Scalability Test
+    // 3. Fetch All 310 Accounts
     fetch(`${API_BASE_URL}/accounts`)
       .then((res) => (res.ok ? res.json() : []))
       .then((data) => {
@@ -71,7 +71,6 @@ export default function App() {
       })
       .catch((err) => console.warn('Could not fetch all accounts list:', err));
   };
-
 
   useEffect(() => {
     fetchData();
@@ -96,23 +95,57 @@ export default function App() {
 
   return (
     <div id="root">
-      {/* Top Header */}
-      <header className="app-header">
-        <div className="brand-section">
-          <div className="brand-icon-wrapper">
-            <ShieldAlert size={24} />
-          </div>
-          <div>
-            <h1 className="brand-title">Fraud Ring X-Ray</h1>
+      {/* Top Navigation Bar Container (Row 1) */}
+      <nav className="app-top-navbar">
+        <div className="top-navbar-left-group">
+          <span className="top-navbar-brand">Fraud Ring X-Ray</span>
+          
+          <div className="top-navbar-tabs">
+            <span 
+              className={`top-navbar-tab ${activeTab === 'investigations' ? 'active' : ''}`}
+              onClick={() => setActiveTab('investigations')}
+            >
+              Investigations
+            </span>
+            <span 
+              className={`top-navbar-tab ${activeTab === 'guardrails' ? 'active' : ''}`}
+              onClick={() => setActiveTab('guardrails')}
+            >
+              Guardrails
+            </span>
+            <span 
+              className={`top-navbar-tab ${activeTab === 'evaluation' ? 'active' : ''}`}
+              onClick={() => setActiveTab('evaluation')}
+            >
+              Evaluation Metrics
+            </span>
+            <span 
+              className={`top-navbar-tab ${activeTab === 'ml' ? 'active' : ''}`}
+              onClick={() => setActiveTab('ml')}
+            >
+              ML Validation
+            </span>
           </div>
         </div>
 
-        {/* View Mode Segmented Toggle */}
+        <div className="top-navbar-right-actions">
+          <button className="top-navbar-icon-btn" title="Settings">
+            <Settings size={17} color="var(--text-secondary)" />
+          </button>
+          <button className="top-navbar-icon-btn" title="User Profile">
+            <User size={17} color="var(--text-secondary)" />
+          </button>
+        </div>
+      </nav>
+
+      {/* Second Header Control Bar (Row 2) - Black Background & White Outlines */}
+      <header className="app-header-single">
+        {/* Left: View Mode Toggle (Focused vs Show All 310) */}
         <div className="view-toggle-container">
           <button
             className={`view-toggle-btn ${!showAllAccounts ? 'active' : ''}`}
             onClick={() => setShowAllAccounts(false)}
-            title="Show 44 connected cluster accounts only"
+            title="Show connected cluster accounts only"
           >
             Focused ({connectedAccountsSet.size})
           </button>
@@ -125,69 +158,29 @@ export default function App() {
           </button>
         </div>
 
-        {/* Search */}
-        <div style={{ position: 'relative', width: '180px' }}>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              background: 'var(--bg-surface)',
-              border: '1px solid var(--border-color)',
-              borderRadius: '20px',
-              padding: '4px 12px',
-            }}
-          >
-            <Search size={14} color="var(--text-muted)" />
+        {/* Middle: Account Search Input (Shifted further right) */}
+        <div style={{ position: 'relative', width: '380px', marginLeft: 'auto', marginRight: '48px' }}>
+          <div className="search-bar-input">
+            <Search size={15} color="var(--text-secondary)" />
             <input
               type="text"
-              placeholder="Search..."
+              placeholder="Search account ID..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                color: 'var(--text-primary)',
-                fontSize: '0.85rem',
-                outline: 'none',
-                width: '100%',
-              }}
             />
           </div>
 
           {filteredAccounts.length > 0 && (
-            <div
-              style={{
-                position: 'absolute',
-                top: '38px',
-                left: 0,
-                right: 0,
-                background: 'var(--bg-surface)',
-                border: '1px solid var(--border-color)',
-                borderRadius: '8px',
-                maxHeight: '200px',
-                overflowY: 'auto',
-                zIndex: 30,
-                boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
-              }}
-            >
+            <div className="search-results-dropdown">
               {filteredAccounts.map((accId) => (
                 <div
                   key={accId}
                   onClick={() => {
                     setSelectedAccountId(accId);
+                    setActiveTab('investigations');
                     setSearchQuery('');
                   }}
-                  style={{
-                    padding: '8px 12px',
-                    fontSize: '0.85rem',
-                    fontFamily: 'var(--font-mono)',
-                    cursor: 'pointer',
-                    borderBottom: '1px solid rgba(255,255,255,0.05)',
-                    color: 'var(--text-primary)',
-                  }}
-                  onMouseEnter={(e) => (e.target.style.background = 'rgba(255,255,255,0.1)')}
-                  onMouseLeave={(e) => (e.target.style.background = 'transparent')}
+                  className="search-result-item"
                 >
                   {accId}
                 </div>
@@ -196,163 +189,128 @@ export default function App() {
           )}
         </div>
 
-        {/* Stats */}
-        <div className="header-stats">
-          <div className="stat-pill">
-            <Layers size={14} className="stat-label" />
-            <span className="stat-label">Clusters:</span>
-            <span className="stat-value">{totalClusters}</span>
-          </div>
-
-          <div className="stat-pill">
-            <AlertOctagon size={14} color="#ef4444" />
-            <span className="stat-label">Suspicious:</span>
-            <span className="stat-value suspicious">{suspiciousClusters}</span>
-          </div>
-
-          <div className="stat-pill">
-            <Users size={14} className="stat-label" />
-            <span className="stat-label">Accounts:</span>
-            <span className="stat-value">
-              {showAllAccounts ? (allAccountIds.length || 310) : connectedAccountsSet.size}
-            </span>
-          </div>
-
-          {/* Legend */}
-          <div className="header-legend">
-            <div className="legend-item">
-              <span className="legend-dot suspicious" />
-              <span>Suspicious</span>
+        {/* Rightmost: Aggregate KPI Summary Pills */}
+        <div className="header-kpi-group" style={{ marginLeft: 'auto' }}>
+          {/* Clusters KPI Pill with Hover Dropdown */}
+          <div className="kpi-pill-wrapper">
+            <div className="kpi-pill" title="Hover to view all clusters list">
+              <Layers size={13} />
+              <span>Clusters: <strong>{totalClusters}</strong></span>
             </div>
-            <div className="legend-item">
-              <span className="legend-dot normal" />
-              <span>Normal</span>
-            </div>
-            {showAllAccounts && (
-              <div className="legend-item">
-                <span className="legend-dot isolated" />
-                <span>Isolated</span>
+            <div className="kpi-dropdown">
+              <div className="kpi-dropdown-header">All {totalClusters} Clusters</div>
+              <div className="kpi-dropdown-list">
+                {clusters.map((c) => {
+                  const cIdRaw = c.cluster_id.replace('cluster_', '');
+                  return (
+                    <div key={c.cluster_id} className="kpi-dropdown-item">
+                      <span className="mono bold">Cluster {cIdRaw}</span>
+                      <span className={`kpi-status-tag ${c.flagged_suspicious ? 'suspicious' : 'normal'}`}>
+                        {c.flagged_suspicious ? 'Suspicious' : 'Normal'}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
-            )}
+            </div>
+          </div>
+
+          {/* Suspicious KPI Pill with Hover Dropdown */}
+          <div className="kpi-pill-wrapper">
+            <div className="kpi-pill suspicious" title="Hover to view suspicious clusters list">
+              <ShieldAlert size={13} />
+              <span>Suspicious: <strong>{suspiciousClusters}</strong></span>
+            </div>
+            <div className="kpi-dropdown">
+              <div className="kpi-dropdown-header suspicious">{suspiciousClusters} Flagged Suspicious Clusters</div>
+              <div className="kpi-dropdown-list">
+                {clusters.filter(c => c.flagged_suspicious).map((c) => {
+                  const cIdRaw = c.cluster_id.replace('cluster_', '');
+                  return (
+                    <div key={c.cluster_id} className="kpi-dropdown-item">
+                      <span className="mono bold" style={{ color: '#E2574C' }}>Cluster {cIdRaw}</span>
+                      <span className="mono" style={{ fontSize: '0.72rem', color: '#8FA3C4' }}>{c.members?.length || 0} Accounts</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* Accounts KPI Pill */}
+          <div className="kpi-pill">
+            <Users size={13} />
+            <span>Accounts: <strong>{showAllAccounts ? (allAccountIds.length || 310) : connectedAccountsSet.size}</strong></span>
           </div>
         </div>
-
-        {/* Safety & Guardrails Button */}
-        <button
-          className="guardrails-btn"
-          onClick={() => setShowGuardrailsModal(true)}
-          title="View Defense-Only Rule & Safety Guardrails"
-        >
-          <ShieldCheck size={16} />
-          <span>Guardrails</span>
-        </button>
-
-        {/* Evaluation Metrics Button */}
-        <button
-          className="eval-btn"
-          onClick={() => setShowEvalModal(true)}
-          title="View Model Performance & Evaluation Metrics"
-        >
-          <BarChart3 size={16} />
-          <span>Evaluation Metrics</span>
-        </button>
-
-        {/* ML Validation Button */}
-        <button
-          className="eval-btn"
-          onClick={() => setShowMLModal(true)}
-          title="View Validated ML Classifier Metrics & Feature Importance"
-          style={{
-            background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.15) 0%, rgba(126, 34, 206, 0.25) 100%)',
-            borderColor: 'rgba(168, 85, 247, 0.4)',
-            color: '#c084fc'
-          }}
-        >
-          <Cpu size={16} />
-          <span>ML Validation</span>
-        </button>
-
-        {/* Refresh Button */}
-        <button
-          className="close-btn"
-          onClick={fetchData}
-          title="Refresh Data"
-          disabled={loading}
-        >
-          <RefreshCw size={18} className={loading ? 'spinner' : ''} />
-        </button>
       </header>
 
-      {/* Main Container */}
+      {/* Main Content Area - Full-Page Tab Switcher */}
       <main className="main-container">
-        {loading && (
-          <div className="state-container" style={{ flex: 1 }}>
-            <div className="spinner" />
-            <p>Loading network graph and cluster data...</p>
-          </div>
-        )}
-
-        {!loading && error && (
-          <div className="state-container" style={{ flex: 1 }}>
-            <AlertOctagon size={48} color="#ef4444" />
-            <h2 style={{ color: '#f87171' }}>Backend Connection Error</h2>
-            <p style={{ maxWidth: '460px' }}>{error}</p>
-            <button className="btn-primary" onClick={fetchData}>
-              Retry Connection
-            </button>
-          </div>
-        )}
-
-        {!loading && !error && (
+        {activeTab === 'investigations' && (
           <>
-            <div style={{ flex: 1, position: 'relative', height: '100%' }}>
-              <GraphView
-                clusters={clusters}
-                evaluation={evaluation}
-                allAccountIds={allAccountIds}
-                showAllAccounts={showAllAccounts}
-                onSelectAccount={(accId) => setSelectedAccountId(accId)}
-                selectedAccountId={selectedAccountId}
-              />
-            </div>
+            {loading && (
+              <div className="state-container" style={{ flex: 1 }}>
+                <div className="spinner" />
+                <p>Loading network graph and cluster data...</p>
+              </div>
+            )}
 
-            {selectedAccountId && (
-              <AccountPanel
-                accountId={selectedAccountId}
-                clusters={clusters}
-                evaluation={evaluation}
-                onClose={() => setSelectedAccountId(null)}
-              />
+            {!loading && error && (
+              <div className="state-container" style={{ flex: 1 }}>
+                <AlertOctagon size={48} color="#E2574C" />
+                <h2 style={{ color: '#E2574C' }}>Backend Connection Error</h2>
+                <p style={{ maxWidth: '460px' }}>{error}</p>
+                <button className="btn-primary" onClick={fetchData}>
+                  Retry Connection
+                </button>
+              </div>
+            )}
+
+            {!loading && !error && (
+              <>
+                <div style={{ flex: 1, position: 'relative', height: '100%' }}>
+                  <GraphView
+                    clusters={clusters}
+                    evaluation={evaluation}
+                    allAccountIds={allAccountIds}
+                    showAllAccounts={showAllAccounts}
+                    onSelectAccount={(accId) => setSelectedAccountId(accId)}
+                    selectedAccountId={selectedAccountId}
+                  />
+                </div>
+
+                {selectedAccountId && (
+                  <AccountPanel
+                    accountId={selectedAccountId}
+                    clusters={clusters}
+                    onSelectAccount={(accId) => setSelectedAccountId(accId)}
+                    onClose={() => setSelectedAccountId(null)}
+                  />
+                )}
+              </>
             )}
           </>
         )}
+
+        {activeTab === 'guardrails' && (
+          <GuardrailsModal isFullPage={true} />
+        )}
+
+        {activeTab === 'evaluation' && (
+          <EvaluationModal
+            evaluation={evaluation}
+            loading={evalLoading}
+            error={evalError}
+            isFullPage={true}
+            onRetry={fetchData}
+          />
+        )}
+
+        {activeTab === 'ml' && (
+          <MLValidationModal isFullPage={true} />
+        )}
       </main>
-
-      {/* Evaluation Modal Overlay */}
-      {showEvalModal && (
-        <EvaluationModal
-          evaluation={evaluation}
-          loading={evalLoading}
-          error={evalError}
-          onClose={() => setShowEvalModal(false)}
-          onRetry={fetchData}
-        />
-      )}
-
-      {/* Guardrails Modal Overlay */}
-      {showGuardrailsModal && (
-        <GuardrailsModal
-          onClose={() => setShowGuardrailsModal(false)}
-        />
-      )}
-
-      {/* ML Validation Modal Overlay */}
-      {showMLModal && (
-        <MLValidationModal
-          onClose={() => setShowMLModal(false)}
-        />
-      )}
     </div>
   );
 }
-
