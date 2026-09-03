@@ -1,26 +1,28 @@
 // Fraud Ring X-Ray UI Dashboard
 import React, { useEffect, useState } from 'react';
-import { ShieldAlert, AlertOctagon, Layers, Users, Search, ShieldCheck, User, Settings } from 'lucide-react';
+import { ShieldAlert, AlertOctagon, Layers, Users, Search, Scan } from 'lucide-react';
 import GraphView from './components/GraphView';
 import AccountPanel from './components/AccountPanel';
 import EvaluationModal from './components/EvaluationModal';
 import GuardrailsModal from './components/GuardrailsModal';
 import MLValidationModal from './components/MLValidationModal';
+import EarlyWarningReplay from './components/EarlyWarningReplay';
 import { API_BASE_URL } from './config';
 
 export default function App() {
   const [clusters, setClusters] = useState([]);
   const [evaluation, setEvaluation] = useState(null);
   const [allAccountIds, setAllAccountIds] = useState([]);
-  const [showAllAccounts, setShowAllAccounts] = useState(false);
+  const [showAllAccounts, setShowAllAccounts] = useState(true);
   const [loading, setLoading] = useState(true);
   const [evalLoading, setEvalLoading] = useState(false);
   const [error, setError] = useState(null);
   const [evalError, setEvalError] = useState(null);
   const [selectedAccountId, setSelectedAccountId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [razorpayStatus, setRazorpayStatus] = useState(null);
   
-  // Top Navigation Tab State: 'investigations' | 'guardrails' | 'evaluation' | 'ml'
+  // Top Navigation Tab State: 'investigations' | 'earlywarning' | 'guardrails' | 'evaluation' | 'ml'
   const [activeTab, setActiveTab] = useState('investigations');
 
   const fetchData = () => {
@@ -70,6 +72,14 @@ export default function App() {
         }
       })
       .catch((err) => console.warn('Could not fetch all accounts list:', err));
+
+    // 4. Fetch Razorpay Test-Mode Sync Status
+    fetch(`${API_BASE_URL}/razorpay-sync-status`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data && data.synced) setRazorpayStatus(data);
+      })
+      .catch(() => {});
   };
 
   useEffect(() => {
@@ -95,17 +105,33 @@ export default function App() {
 
   return (
     <div id="root">
-      {/* Top Navigation Bar Container (Row 1) */}
+      {/* Top Navigation Bar Container (Row 1 - Matching Image 1) */}
       <nav className="app-top-navbar">
         <div className="top-navbar-left-group">
-          <span className="top-navbar-brand">Fraud Ring X-Ray</span>
+          {/* Brand Logo Icon + Title + Subtitle */}
+          <div className="brand-logo-container">
+            <div className="brand-icon-box">
+              <Scan size={17} color="#378ADD" />
+            </div>
+            <div className="brand-text-stack">
+              <span className="top-navbar-brand">Fraud Ring X-Ray</span>
+              <span className="brand-subtext-console">INVESTIGATIVE CONSOLE</span>
+            </div>
+          </div>
           
+          {/* Top Navigation Tabs */}
           <div className="top-navbar-tabs">
             <span 
               className={`top-navbar-tab ${activeTab === 'investigations' ? 'active' : ''}`}
               onClick={() => setActiveTab('investigations')}
             >
               Investigations
+            </span>
+            <span 
+              className={`top-navbar-tab ${activeTab === 'earlywarning' ? 'active' : ''}`}
+              onClick={() => setActiveTab('earlywarning')}
+            >
+              Early Warning Replay
             </span>
             <span 
               className={`top-navbar-tab ${activeTab === 'guardrails' ? 'active' : ''}`}
@@ -117,7 +143,7 @@ export default function App() {
               className={`top-navbar-tab ${activeTab === 'evaluation' ? 'active' : ''}`}
               onClick={() => setActiveTab('evaluation')}
             >
-              Evaluation Metrics
+              Evaluation
             </span>
             <span 
               className={`top-navbar-tab ${activeTab === 'ml' ? 'active' : ''}`}
@@ -128,46 +154,69 @@ export default function App() {
           </div>
         </div>
 
+        {/* Top Navbar Far Right Actions */}
         <div className="top-navbar-right-actions">
-          <button className="top-navbar-icon-btn" title="Settings">
-            <Settings size={17} color="var(--text-secondary)" />
-          </button>
-          <button className="top-navbar-icon-btn" title="User Profile">
-            <User size={17} color="var(--text-secondary)" />
-          </button>
+          <div className="live-status-pill">
+            <span className="live-dot" />
+            <span>LIVE</span>
+          </div>
+
+          {/* Razorpay Test-Mode API Sync Badge */}
+          {razorpayStatus?.synced && (
+            <div 
+              style={{
+                background: 'rgba(29, 158, 117, 0.14)',
+                border: '1px solid rgba(29, 158, 117, 0.35)',
+                borderRadius: '20px',
+                padding: '4px 12px',
+                fontSize: '0.72rem',
+                fontWeight: 700,
+                color: '#1D9E75',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                fontFamily: 'var(--font-mono)'
+              }}
+              title={razorpayStatus.source}
+            >
+              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#1D9E75' }} />
+              <span>Synced with Razorpay test-mode API ({razorpayStatus.order_count} orders)</span>
+            </div>
+          )}
         </div>
       </nav>
 
-      {/* Second Header Control Bar (Row 2) - Black Background & White Outlines */}
+      {/* Second Header Control Bar (Row 2 - Matching Image 1) */}
       <header className="app-header-single">
-        {/* Left: View Mode Toggle (Focused vs Show All 310) */}
+        {/* Left: View Mode Toggle (Focused 44 vs All 310) */}
         <div className="view-toggle-container">
           <button
             className={`view-toggle-btn ${!showAllAccounts ? 'active' : ''}`}
             onClick={() => setShowAllAccounts(false)}
             title="Show connected cluster accounts only"
           >
-            Focused ({connectedAccountsSet.size})
+            Focused {connectedAccountsSet.size}
           </button>
           <button
             className={`view-toggle-btn ${showAllAccounts ? 'active' : ''}`}
             onClick={() => setShowAllAccounts(true)}
             title="Show all 310 accounts for scalability test"
           >
-            Show All ({allAccountIds.length || 310})
+            All {allAccountIds.length || 310}
           </button>
         </div>
 
-        {/* Middle: Account Search Input (Shifted further right) */}
-        <div style={{ position: 'relative', width: '380px', marginLeft: 'auto', marginRight: '48px' }}>
+        {/* Middle: Account Search Input with ⌘K badge */}
+        <div style={{ position: 'relative', width: '360px', margin: '0 auto' }}>
           <div className="search-bar-input">
-            <Search size={15} color="var(--text-secondary)" />
+            <Search size={14} color="#8FA3C4" />
             <input
               type="text"
               placeholder="Search account ID..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
+            <span className="shortcut-badge">⌘K</span>
           </div>
 
           {filteredAccounts.length > 0 && (
@@ -200,13 +249,13 @@ export default function App() {
             <div className="kpi-dropdown">
               <div className="kpi-dropdown-header">All {totalClusters} Clusters</div>
               <div className="kpi-dropdown-list">
-                {clusters.map((c) => {
-                  const cIdRaw = c.cluster_id.replace('cluster_', '');
+                {clusters.map((c, idx) => {
+                  const cIdRaw = (c?.cluster_id || '').replace('cluster_', '') || String(idx + 1);
                   return (
-                    <div key={c.cluster_id} className="kpi-dropdown-item">
+                    <div key={c?.cluster_id || idx} className="kpi-dropdown-item">
                       <span className="mono bold">Cluster {cIdRaw}</span>
-                      <span className={`kpi-status-tag ${c.flagged_suspicious ? 'suspicious' : 'normal'}`}>
-                        {c.flagged_suspicious ? 'Suspicious' : 'Normal'}
+                      <span className={`kpi-status-tag ${c?.flagged_suspicious ? 'suspicious' : 'normal'}`}>
+                        {c?.flagged_suspicious ? 'Suspicious' : 'Normal'}
                       </span>
                     </div>
                   );
@@ -224,12 +273,12 @@ export default function App() {
             <div className="kpi-dropdown">
               <div className="kpi-dropdown-header suspicious">{suspiciousClusters} Flagged Suspicious Clusters</div>
               <div className="kpi-dropdown-list">
-                {clusters.filter(c => c.flagged_suspicious).map((c) => {
-                  const cIdRaw = c.cluster_id.replace('cluster_', '');
+                {clusters.filter(c => c?.flagged_suspicious).map((c, idx) => {
+                  const cIdRaw = (c?.cluster_id || '').replace('cluster_', '') || String(idx + 1);
                   return (
-                    <div key={c.cluster_id} className="kpi-dropdown-item">
+                    <div key={c?.cluster_id || idx} className="kpi-dropdown-item">
                       <span className="mono bold" style={{ color: '#E2574C' }}>Cluster {cIdRaw}</span>
-                      <span className="mono" style={{ fontSize: '0.72rem', color: '#8FA3C4' }}>{c.members?.length || 0} Accounts</span>
+                      <span className="mono" style={{ fontSize: '0.72rem', color: '#8FA3C4' }}>{c?.members?.length || 0} Accounts</span>
                     </div>
                   );
                 })}
@@ -291,6 +340,10 @@ export default function App() {
               </>
             )}
           </>
+        )}
+
+        {activeTab === 'earlywarning' && (
+          <EarlyWarningReplay isFullPage={true} />
         )}
 
         {activeTab === 'guardrails' && (

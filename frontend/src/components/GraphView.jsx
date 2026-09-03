@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Network } from 'vis-network/standalone';
+import { ZoomIn, ZoomOut, Maximize2 } from 'lucide-react';
 
 export default function GraphView({
   clusters,
@@ -11,6 +12,7 @@ export default function GraphView({
 }) {
   const containerRef = useRef(null);
   const networkRef = useRef(null);
+  const connectedNodesRef = useRef([]);
 
   useEffect(() => {
     if (!containerRef.current || !clusters || clusters.length === 0) return;
@@ -25,15 +27,25 @@ export default function GraphView({
       });
     }
 
+    const nodeMLConfMap = new Map();
+    const nodeTierMap = new Map();
     const nodesMap = new Map();
     const edgeSet = new Map();
 
-    // 1. Process connected cluster member accounts
     clusters.forEach((cluster) => {
       const isSuspicious = cluster.flagged_suspicious;
       const members = cluster.members || [];
+      const tierKey = cluster.confidence_tier || 'likely_legitimate';
+
+      let tierLabel = 'Likely legitimate';
+      if (tierKey === 'high_confidence_fraud') tierLabel = 'High confidence fraud';
+      else if (tierKey === 'needs_human_review') tierLabel = 'Needs human review';
 
       members.forEach((accId) => {
+        const existingConf = nodeMLConfMap.get(accId) || 0;
+        nodeMLConfMap.set(accId, Math.max(existingConf, cluster.ml_confidence || 0));
+        nodeTierMap.set(accId, tierLabel);
+
         if (!nodesMap.has(accId)) {
           nodesMap.set(accId, {
             id: accId,
@@ -72,13 +84,30 @@ export default function GraphView({
       }
     });
 
-    // 2. If showAllAccounts is enabled, add remaining isolated accounts
+    // Save connected node IDs for camera fitting
+    connectedNodesRef.current = Array.from(nodesMap.keys());
+
+    // When showAllAccounts is enabled, place isolated nodes in a spiral constellation
     if (showAllAccounts && Array.isArray(allAccountIds)) {
+      let isoIndex = 0;
+      const constCenterX = 0;
+      const constCenterY = 0;
+
       allAccountIds.forEach((accId) => {
         if (!nodesMap.has(accId)) {
+          const angleStep = 2.4;
+          const r = 180 + Math.sqrt(isoIndex) * 22;
+          const theta = isoIndex * angleStep;
+
+          const isoX = constCenterX + r * Math.cos(theta) * 1.1;
+          const isoY = constCenterY + r * Math.sin(theta) * 0.95;
+          isoIndex++;
+
           nodesMap.set(accId, {
             id: accId,
             label: accId,
+            x: isoX,
+            y: isoY,
             isSuspicious: false,
             isIsolated: true,
             clusters: [],
@@ -87,93 +116,75 @@ export default function GraphView({
       });
     }
 
-    // Format nodes for vis-network (Sleek, compact node sizing from original clean design)
     const nodes = Array.from(nodesMap.values()).map((node) => {
-      // Isolated node styling (dimmed/subtle)
+      const mlConf = nodeMLConfMap.get(node.id) || 0;
+      const tierLabel = nodeTierMap.get(node.id) || 'Isolated';
+
       if (node.isIsolated) {
         return {
           id: node.id,
           label: node.label,
-          title: `Account ID: ${node.id}\nStatus: Isolated (No shared signals/edges)`,
+          x: node.x,
+          y: node.y,
+          title: `Account ID: ${node.id}\nStatus: Isolated`,
           shape: 'dot',
-          size: 7,
+          size: 5,
           font: {
-            color: '#6b7280',
-            size: 9,
+            color: '#687D9D',
+            size: 8.5,
             face: 'JetBrains Mono, monospace',
-            strokeWidth: 1,
-            strokeColor: '#0b0f19',
           },
           color: {
-            background: '#1f2937',
-            border: '#374151',
-            highlight: {
-              background: '#374151',
-              border: '#6b7280',
-            },
-            hover: {
-              background: '#374151',
-              border: '#6b7280',
-            },
+            background: '#132743',
+            border: '#8FA3C4',
           },
           borderWidth: 1,
-          borderWidthSelected: 2,
-          shadow: false,
         };
       }
 
-      // Clustered node styling (Small, clean dots as requested)
       const isSus = node.isSuspicious;
-      const clusterDetails = node.clusters
-        .map((cId) => {
-          const ring = ringMap.get(cId);
-          return ring ? `${cId} (${ring})` : cId;
-        })
-        .join(', ');
-
-      const titleTooltip = `Account ID: ${node.id}\nCluster(s): ${clusterDetails}\nStatus: ${isSus ? 'Suspicious' : 'Normal'}`;
+      const titleTooltip = `Account ID: ${node.id}\nRisk Tier: ${tierLabel}\nML Confidence: ${(mlConf * 100).toFixed(1)}%\nStatus: ${isSus ? 'Suspicious' : 'Normal'}`;
 
       return {
         id: node.id,
         label: node.label,
         title: titleTooltip,
         shape: 'dot',
-        size: isSus ? 11 : 9,
+        size: isSus ? 12 : 7.5,
         font: {
-          color: '#e5e7eb',
-          size: 11,
+          color: isSus ? '#F3F6FA' : '#8FA3C4',
+          size: isSus ? 11 : 9.5,
           face: 'JetBrains Mono, monospace',
           strokeWidth: 2,
-          strokeColor: '#0b0f19',
+          strokeColor: '#000000',
         },
         color: {
-          background: isSus ? '#ef4444' : '#6b7280',
-          border: isSus ? '#f87171' : '#9ca3af',
+          background: isSus ? '#E2574C' : '#1D9E75',
+          border: isSus ? '#E2574C' : '#1D9E75',
           highlight: {
-            background: isSus ? '#f87171' : '#9ca3af',
-            border: '#ffffff',
+            background: isSus ? '#E2574C' : '#1D9E75',
+            border: '#378ADD',
           },
           hover: {
-            background: isSus ? '#f87171' : '#9ca3af',
-            border: '#ffffff',
+            background: isSus ? '#E2574C' : '#1D9E75',
+            border: '#378ADD',
           },
         },
-        borderWidth: 1.5,
+        borderWidth: isSus ? 1.5 : 1,
         borderWidthSelected: 3,
-        shadow: isSus ? { enabled: true, color: 'rgba(239, 68, 68, 0.35)', size: 6 } : false,
+        shadow: isSus ? { enabled: true, color: 'rgba(226, 87, 76, 0.45)', size: 8 } : false,
       };
     });
 
-    // Format edges for vis-network
     const edges = Array.from(edgeSet.values()).map((edge) => ({
       id: edge.id,
       from: edge.from,
       to: edge.to,
-      width: edge.isSuspicious ? 1.5 : 1,
+      width: edge.isSuspicious ? 2.2 : 1.5,
       color: {
-        color: edge.isSuspicious ? 'rgba(239, 68, 68, 0.45)' : 'rgba(156, 163, 175, 0.25)',
-        highlight: '#ef4444',
-        hover: '#ef4444',
+        color: edge.isSuspicious ? 'rgba(226, 87, 76, 0.85)' : 'rgba(143, 163, 196, 0.55)',
+        highlight: '#E2574C',
+        hover: '#E2574C',
       },
       smooth: {
         type: 'continuous',
@@ -182,7 +193,7 @@ export default function GraphView({
 
     const data = { nodes, edges };
 
-    // Original clean physics options
+    // Pure forceAtlas2Based physics layout
     const options = {
       nodes: {
         borderWidth: 1.5,
@@ -194,15 +205,14 @@ export default function GraphView({
         },
       },
       physics: {
-        enabled: true,
         solver: 'forceAtlas2Based',
         forceAtlas2Based: {
-          gravitationalConstant: -30,
-          centralGravity: 0.008,
+          gravitationalConstant: -35,
+          centralGravity: 0.006,
           springLength: 75,
           springConstant: 0.08,
           damping: 0.4,
-          avoidOverlap: 0.8,
+          avoidOverlap: 0.5,
         },
         maxVelocity: 50,
         minVelocity: 0.1,
@@ -220,29 +230,50 @@ export default function GraphView({
       },
     };
 
-    // Instantiate vis-network
     const network = new Network(containerRef.current, data, options);
     networkRef.current = network;
 
-    // Handle node selection
-    network.on('selectNode', (params) => {
-      if (params.nodes && params.nodes.length > 0) {
-        const selectedId = params.nodes[0];
+    // Node click handler
+    network.on('click', (params) => {
+      if (params.nodes.length > 0) {
+        const clickedNodeId = params.nodes[0];
         if (onSelectAccount) {
-          onSelectAccount(selectedId);
+          onSelectAccount(clickedNodeId);
+        }
+      } else {
+        if (onSelectAccount) {
+          onSelectAccount(null);
         }
       }
     });
 
-    // Handle click on canvas background (deselect)
-    network.on('deselectNode', () => {
-      if (onSelectAccount) {
-        onSelectAccount(null);
-      }
-    });
-
-    // Draw cluster header pill badges on graph canvas safely above top-most node
+    // Custom Canvas Overlay Drawing
     network.on('afterDrawing', (ctx) => {
+      // 1. Draw ML Confidence Outer Ring around cluster nodes using strict 3-tier colors
+      ctx.save();
+      nodesMap.forEach((node) => {
+        if (node.isIsolated) return;
+        const pos = network.getPositions([node.id])[node.id];
+        if (!pos) return;
+
+        const mlConf = nodeMLConfMap.get(node.id) || 0;
+        let ringColor = 'rgba(29, 158, 117, 0.6)'; // Legitimate (Teal)
+        if (mlConf > 0.8) {
+          ringColor = 'rgba(226, 87, 76, 0.9)'; // High Risk (Coral/Red)
+        } else if (mlConf >= 0.5) {
+          ringColor = 'rgba(186, 117, 23, 0.85)'; // Needs Review (Amber)
+        }
+
+        ctx.beginPath();
+        const outerRadius = node.isSuspicious ? 16 : 13;
+        ctx.arc(pos.x, pos.y, outerRadius, 0, 2 * Math.PI);
+        ctx.strokeStyle = ringColor;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      });
+      ctx.restore();
+
+      // 2. Draw Cluster Header Badges
       clusters.forEach((cluster) => {
         const members = cluster.members || [];
         if (members.length === 0) return;
@@ -266,51 +297,51 @@ export default function GraphView({
 
         const avgX = sumX / count;
 
-        const matchedRing = ringMap.get(cluster.cluster_id);
-        const clusterLabelText = matchedRing
-          ? `${cluster.cluster_id.toUpperCase()} • ${matchedRing}`
-          : cluster.cluster_id;
+        const cIdRaw = (cluster?.cluster_id || '').replace('cluster_', '') || '0';
+        const cIdFormatted = `Cluster ${cIdRaw}`;
+        const matchedRing = cluster?.cluster_id ? ringMap.get(cluster.cluster_id) : null;
+        
+        let formattedRing = '';
+        if (matchedRing) {
+          formattedRing = String(matchedRing).replace('RING_', 'Ring ');
+        }
+
+        const clusterLabelText = formattedRing
+          ? `${cIdFormatted} · ${formattedRing}`
+          : cIdFormatted;
 
         const isSuspicious = cluster.flagged_suspicious;
 
         ctx.save();
-        ctx.font = 'bold 10px JetBrains Mono, monospace';
+        ctx.font = '600 12px JetBrains Mono, monospace';
 
         const textWidth = ctx.measureText(clusterLabelText).width;
-        const paddingX = 8;
+        const paddingX = 10;
         const rectWidth = textWidth + paddingX * 2;
-        const rectHeight = 18;
+        const rectHeight = 22;
 
         const rectX = avgX - rectWidth / 2;
-        // Position badge safely 24px above the top-most node in the cluster
-        const rectY = minY - 24;
+        const rectY = minY - 30;
 
-        // Badge Background Pill
+        // Background box (Pure Black Surface)
+        ctx.fillStyle = 'rgba(9, 11, 16, 0.95)';
         ctx.beginPath();
-        const radius = 9;
-        ctx.roundRect(rectX, rectY, rectWidth, rectHeight, radius);
-
-        if (isSuspicious) {
-          ctx.fillStyle = 'rgba(239, 68, 68, 0.9)';
-          ctx.shadowColor = 'rgba(239, 68, 68, 0.4)';
-          ctx.shadowBlur = 6;
-        } else {
-          ctx.fillStyle = 'rgba(31, 41, 55, 0.85)';
-          ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
-          ctx.shadowBlur = 4;
-        }
+        ctx.roundRect(rectX, rectY, rectWidth, rectHeight, 4);
         ctx.fill();
 
-        ctx.strokeStyle = isSuspicious ? '#f87171' : '#6b7280';
-        ctx.lineWidth = 1;
+        // Left accent line
+        ctx.beginPath();
+        ctx.moveTo(rectX, rectY);
+        ctx.lineTo(rectX, rectY + rectHeight);
+        ctx.strokeStyle = isSuspicious ? '#E2574C' : '#1D9E75';
+        ctx.lineWidth = 3;
         ctx.stroke();
 
-        // Badge Text
-        ctx.shadowBlur = 0;
-        ctx.fillStyle = '#ffffff';
+        // Label Text
+        ctx.fillStyle = isSuspicious ? '#E2574C' : '#1D9E75';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText(clusterLabelText, avgX, rectY + rectHeight / 2);
+        ctx.fillText(clusterLabelText, avgX + 1, rectY + rectHeight / 2);
 
         ctx.restore();
       });
@@ -324,7 +355,6 @@ export default function GraphView({
     };
   }, [clusters, evaluation, showAllAccounts, allAccountIds]);
 
-  // Handle selectedAccountId highlight
   useEffect(() => {
     if (networkRef.current && selectedAccountId) {
       try {
@@ -335,9 +365,79 @@ export default function GraphView({
     }
   }, [selectedAccountId]);
 
+  // Interactive Zoom Control Handlers
+  const handleZoomIn = () => {
+    if (networkRef.current) {
+      const scale = networkRef.current.getScale();
+      networkRef.current.moveTo({
+        scale: Math.min(scale * 1.35, 2.5),
+        animation: { duration: 250, easingFunction: 'easeInOutQuad' },
+      });
+    }
+  };
+
+  const handleZoomOut = () => {
+    if (networkRef.current) {
+      const scale = networkRef.current.getScale();
+      networkRef.current.moveTo({
+        scale: Math.max(scale / 1.35, 0.15),
+        animation: { duration: 250, easingFunction: 'easeInOutQuad' },
+      });
+    }
+  };
+
+  const handleResetView = () => {
+    if (networkRef.current) {
+      if (connectedNodesRef.current.length > 0) {
+        networkRef.current.fit({
+          nodes: connectedNodesRef.current,
+          animation: { duration: 400, easingFunction: 'easeInOutQuad' },
+        });
+      } else {
+        networkRef.current.fit({
+          animation: { duration: 400, easingFunction: 'easeInOutQuad' },
+        });
+      }
+    }
+  };
+
   return (
-    <div className="graph-wrapper">
-      <div ref={containerRef} className="vis-network-container" />
+    <div className="graph-wrapper" style={{ position: 'relative', width: '100%', height: '100%' }}>
+      <div ref={containerRef} className="vis-network-container" style={{ width: '100%', height: '100%' }} />
+
+      {/* Canvas Top-Left Legend Overlay (Matching Image 1) */}
+      <div className="canvas-legend-bar-topleft">
+        <div className="legend-bar-item">
+          <span className="legend-dot fraud" />
+          <span>FRAUD</span>
+        </div>
+        <div className="legend-bar-item">
+          <span className="legend-dot review" />
+          <span>REVIEW</span>
+        </div>
+        <div className="legend-bar-item">
+          <span className="legend-dot legit" />
+          <span>LEGIT</span>
+        </div>
+      </div>
+
+      {/* Canvas Bottom-Left Zoom & Node Count Indicator */}
+      <div className="canvas-bottomleft-info">
+        <span>1.00x · {showAllAccounts ? 310 : 44} NODES</span>
+      </div>
+
+      {/* Interactive Floating Zoom Controls */}
+      <div className="canvas-zoom-controls">
+        <button className="zoom-btn" onClick={handleZoomIn} title="Zoom In (+)">
+          <ZoomIn size={15} />
+        </button>
+        <button className="zoom-btn" onClick={handleZoomOut} title="Zoom Out (-)">
+          <ZoomOut size={15} />
+        </button>
+        <button className="zoom-btn" onClick={handleResetView} title="Reset View">
+          <Maximize2 size={14} />
+        </button>
+      </div>
     </div>
   );
 }
