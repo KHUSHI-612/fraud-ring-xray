@@ -193,7 +193,7 @@ export default function GraphView({
 
     const data = { nodes, edges };
 
-    // Pure forceAtlas2Based physics layout
+    // Dynamic forceAtlas2Based physics layout (Live spring animation on load)
     const options = {
       nodes: {
         borderWidth: 1.5,
@@ -207,19 +207,17 @@ export default function GraphView({
       physics: {
         solver: 'forceAtlas2Based',
         forceAtlas2Based: {
-          gravitationalConstant: -35,
-          centralGravity: 0.006,
-          springLength: 75,
-          springConstant: 0.08,
-          damping: 0.4,
-          avoidOverlap: 0.5,
+          gravitationalConstant: -45,
+          centralGravity: 0.005,
+          springLength: 85,
+          springConstant: 0.06,
+          damping: 0.25,
+          avoidOverlap: 0.6,
         },
         maxVelocity: 50,
-        minVelocity: 0.1,
+        minVelocity: 0.05,
         stabilization: {
-          enabled: true,
-          iterations: 150,
-          updateInterval: 25,
+          enabled: false, // Live organic animation on every refresh!
         },
       },
       interaction: {
