@@ -1,6 +1,6 @@
 {
-  "total_clusters_found": 11,
-  "total_flagged_suspicious": 8,
+  "total_clusters_found": 13,
+  "total_flagged_suspicious": 9,
   "true_positives": [
     {
       "cluster_id": "cluster_4",
@@ -53,9 +53,20 @@
         "ACC_N3_3"
       ],
       "is_known_noise_bait": true
+    },
+    {
+      "cluster_id": "cluster_11",
+      "members": [
+        "ACC_RZP_RING_1",
+        "ACC_RZP_RING_2",
+        "ACC_RZP_RING_3",
+        "ACC_RZP_RING_4",
+        "ACC_RZP_RING_5"
+      ],
+      "is_known_noise_bait": false
     }
   ],
-  "precision": 0.625,
+  "precision": 0.556,
   "recall": 0.833,
   "rings_caught": 5,
   "rings_total": 6,

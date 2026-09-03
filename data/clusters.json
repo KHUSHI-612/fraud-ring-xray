@@ -233,5 +233,61 @@
     "confidence_tier": "high_confidence_fraud",
     "tier_label": "High Confidence Fraud",
     "tier_color": "#f87171"
+  },
+  {
+    "cluster_id": "cluster_11",
+    "members": [
+      "ACC_RZP_RING_1",
+      "ACC_RZP_RING_2",
+      "ACC_RZP_RING_3",
+      "ACC_RZP_RING_4",
+      "ACC_RZP_RING_5"
+    ],
+    "size": 5,
+    "weight_density": 1.9,
+    "signup_spread_minutes": 0.0,
+    "avg_return_rate": 0.0,
+    "ml_confidence": 0.9905,
+    "signals_involved": [
+      "address",
+      "device",
+      "ip"
+    ],
+    "flagged_suspicious": true,
+    "confidence_tier": "high_confidence_fraud",
+    "tier_label": "High Confidence Fraud",
+    "tier_color": "#f87171"
+  },
+  {
+    "cluster_id": "cluster_12",
+    "members": [
+      "ACC_RZP_IND_10",
+      "ACC_RZP_IND_11",
+      "ACC_RZP_IND_12",
+      "ACC_RZP_IND_13",
+      "ACC_RZP_IND_14",
+      "ACC_RZP_IND_15",
+      "ACC_RZP_IND_16",
+      "ACC_RZP_IND_17",
+      "ACC_RZP_IND_18",
+      "ACC_RZP_IND_19",
+      "ACC_RZP_IND_20",
+      "ACC_RZP_IND_6",
+      "ACC_RZP_IND_7",
+      "ACC_RZP_IND_8",
+      "ACC_RZP_IND_9"
+    ],
+    "size": 15,
+    "weight_density": 0.3,
+    "signup_spread_minutes": 0.1,
+    "avg_return_rate": 0.0,
+    "ml_confidence": 1.0,
+    "signals_involved": [
+      "ip"
+    ],
+    "flagged_suspicious": false,
+    "confidence_tier": "likely_legitimate",
+    "tier_label": "Likely Legitimate",
+    "tier_color": "#34d399"
   }
 ]

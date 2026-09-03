@@ -53,6 +53,53 @@ MIN_CLUSTER_WEIGHT_DENSITY = 0.5
 def load_data():
     accounts = pd.read_csv(os.path.join(DATA_DIR, "accounts.csv"))
     orders = pd.read_csv(os.path.join(DATA_DIR, "orders.csv"))
+
+    rzp_file = os.path.join(DATA_DIR, "razorpay_orders.json")
+    if os.path.exists(rzp_file):
+        try:
+            with open(rzp_file, "r", encoding="utf-8") as f:
+                rzp_data = json.load(f)
+                rzp_orders_list = rzp_data.get("orders", [])
+
+                rzp_acc_rows = []
+                rzp_order_rows = []
+
+                for item in rzp_orders_list:
+                    notes = item.get("notes", {})
+                    acc_id = notes.get("account_id", f"ACC_RZP_{item['id']}")
+                    dev_id = notes.get("device_id", f"DEV_RZP_{item['id']}")
+                    addr = notes.get("shipping_address", f"Address_{item['id']}")
+                    ip = notes.get("ip_address", "192.168.1.1")
+                    
+                    created_timestamp = pd.to_datetime(item.get("created_at", 1775000000), unit="s").strftime("%Y-%m-%dT%H:%M:%S")
+
+                    rzp_acc_rows.append({
+                        "account_id": acc_id,
+                        "signup_date": created_timestamp,
+                        "device_id": dev_id,
+                        "shipping_address": addr,
+                        "ip_address": ip
+                    })
+
+                    rzp_order_rows.append({
+                        "order_id": item["id"],
+                        "account_id": acc_id,
+                        "order_date": created_timestamp,
+                        "amount": float(item.get("amount", 50000)) / 100.0,
+                        "status": "completed" if item.get("status") == "paid" else "pending"
+                    })
+
+                if rzp_acc_rows:
+                    rzp_acc_df = pd.DataFrame(rzp_acc_rows)
+                    accounts = pd.concat([accounts, rzp_acc_df], ignore_index=True).drop_duplicates(subset=["account_id"])
+
+                if rzp_order_rows:
+                    rzp_order_df = pd.DataFrame(rzp_order_rows)
+                    orders = pd.concat([orders, rzp_order_df], ignore_index=True).drop_duplicates(subset=["order_id"])
+
+        except Exception as e:
+            print(f"⚠️ Warning loading razorpay_orders.json in build_graph.py: {e}")
+
     return accounts, orders
 
 
