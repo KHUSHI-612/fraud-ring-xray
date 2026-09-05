@@ -29,18 +29,19 @@ export default function EvaluationModal({ evaluation: initialEval, loading: init
 
   const evaluation = evalData || {};
 
-  // Live metrics from backend
-  const prec = evaluation.precision != null ? evaluation.precision : 0.625;
+  // Live metrics from backend evaluation.json
+  const prec = evaluation.precision != null ? evaluation.precision : 0.556;
   const rec = evaluation.recall != null ? evaluation.recall : 0.833;
-  const f1 = (prec && rec) ? ((2 * prec * rec) / (prec + rec)) : 0.714;
+  const f1 = evaluation.f1_score != null ? evaluation.f1_score : 0.667;
   
-  const fpCount = Array.isArray(evaluation.false_positives) ? evaluation.false_positives.length : 3;
-  const totalAcc = 55;
-  const fpr = (fpCount / totalAcc).toFixed(2);
+  const fprVal = evaluation.account_metrics?.false_positive_rate != null 
+    ? evaluation.account_metrics.false_positive_rate 
+    : (evaluation.false_positive_rate != null ? evaluation.false_positive_rate : 0.056);
 
   const precDisplay = prec.toFixed(2);
   const recDisplay = rec.toFixed(2);
   const f1Display = f1.toFixed(2);
+  const fprDisplay = fprVal.toFixed(2);
 
   // Live cluster chart data mapped directly from clusters.json dataset
   const clusterChartData = (clustersData.length > 0 ? clustersData : [
@@ -166,7 +167,7 @@ export default function EvaluationModal({ evaluation: initialEval, loading: init
               <AlertTriangle size={16} color="#378ADD" />
             </div>
             <div style={{ fontSize: '2.4rem', fontWeight: 800, color: '#FFFFFF', lineHeight: 1 }}>
-              {fpr}
+              {fprDisplay}
             </div>
             <span style={{ fontSize: '0.72rem', color: '#687D9D', fontFamily: 'var(--font-mono)' }}>
               FP / (FP + TN)
@@ -201,8 +202,8 @@ export default function EvaluationModal({ evaluation: initialEval, loading: init
             </div>
 
             {/* SVG Bar Chart */}
-            <div style={{ width: '100%', height: '240px', position: 'relative' }}>
-              <svg width="100%" height="240" viewBox="0 0 440 220" preserveAspectRatio="none" style={{ overflow: 'visible' }}>
+            <div style={{ width: '100%', height: '240px', position: 'relative', overflow: 'hidden' }}>
+              <svg width="100%" height="240" viewBox="0 0 440 220" preserveAspectRatio="none" style={{ overflow: 'hidden' }}>
                 {/* Y Axis Grid Lines */}
                 {[0, 0.4, 0.8, 1.2, 1.6].map((tick) => {
                   const y = 180 - (tick / 1.6) * 160;
@@ -217,28 +218,33 @@ export default function EvaluationModal({ evaluation: initialEval, loading: init
                 })}
 
                 {/* Bars per cluster */}
-                {clusterChartData.map((d, i) => {
-                  const xBase = 38 + i * 36;
-                  const barWidth = 9;
-                  const redHeight = Math.min((d.density / 1.6) * 160, 160);
-                  const blueHeight = Math.min((d.detection / 1.6) * 160, 160);
+                {(() => {
+                  const numClusters = clusterChartData.length;
+                  const step = numClusters > 1 ? 385 / numClusters : 36;
+                  const barWidth = Math.max(4, Math.min(8, (step - 5) / 2));
 
-                  const redY = 180 - redHeight;
-                  const blueY = 180 - blueHeight;
+                  return clusterChartData.map((d, i) => {
+                    const xBase = 32 + i * step;
+                    const redHeight = Math.min((d.density / 1.6) * 160, 160);
+                    const blueHeight = Math.min((d.detection / 1.6) * 160, 160);
 
-                  return (
-                    <g key={d.label}>
-                      {/* Red Density Bar */}
-                      <rect x={xBase} y={redY} width={barWidth} height={redHeight} fill="#E2574C" rx="2" />
-                      {/* Blue Detection Bar */}
-                      <rect x={xBase + barWidth + 3} y={blueY} width={barWidth} height={blueHeight} fill="#378ADD" rx="2" />
-                      {/* X Axis Label */}
-                      <text x={xBase + 6} y="200" fill="#8FA3C4" fontSize="10" textAnchor="middle" fontFamily="var(--font-mono)">
-                        {d.label}
-                      </text>
-                    </g>
-                  );
-                })}
+                    const redY = 180 - redHeight;
+                    const blueY = 180 - blueHeight;
+
+                    return (
+                      <g key={d.label}>
+                        {/* Red Density Bar */}
+                        <rect x={xBase} y={redY} width={barWidth} height={redHeight} fill="#E2574C" rx="2" />
+                        {/* Blue Detection Bar */}
+                        <rect x={xBase + barWidth + 2} y={blueY} width={barWidth} height={blueHeight} fill="#378ADD" rx="2" />
+                        {/* X Axis Label */}
+                        <text x={xBase + barWidth} y="200" fill="#8FA3C4" fontSize="9" textAnchor="middle" fontFamily="var(--font-mono)">
+                          {d.label}
+                        </text>
+                      </g>
+                    );
+                  });
+                })()}
 
                 {/* X Axis Line */}
                 <line x1="30" y1="180" x2="430" y2="180" stroke="rgba(255, 255, 255, 0.12)" />
