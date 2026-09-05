@@ -1,6 +1,6 @@
 // Fraud Ring X-Ray UI Dashboard
 import React, { useEffect, useState } from 'react';
-import { ShieldAlert, AlertOctagon, Layers, Users, Search, Scan } from 'lucide-react';
+import { ShieldAlert, AlertOctagon, Layers, Users, Search, Scan, Zap, Loader2 } from 'lucide-react';
 import GraphView from './components/GraphView';
 import AccountPanel from './components/AccountPanel';
 import EvaluationModal from './components/EvaluationModal';
@@ -21,9 +21,52 @@ export default function App() {
   const [selectedAccountId, setSelectedAccountId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [razorpayStatus, setRazorpayStatus] = useState(null);
+  const [creatingOrder, setCreatingOrder] = useState(false);
   
   // Top Navigation Tab State: 'investigations' | 'earlywarning' | 'guardrails' | 'evaluation' | 'ml'
   const [activeTab, setActiveTab] = useState('investigations');
+
+  const handleCreateLiveOrder = async () => {
+    if (creatingOrder) return;
+    setCreatingOrder(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/razorpay/create-live-ring-order`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        // Update order count badge
+        setRazorpayStatus((prev) => ({
+          ...prev,
+          synced: true,
+          order_count: data.order_count,
+          badge_label: `Synced with Razorpay test-mode API (${data.order_count} orders)`
+        }));
+        // Re-fetch clusters and all accounts
+        const [clsRes, accsRes] = await Promise.all([
+          fetch(`${API_BASE_URL}/clusters`),
+          fetch(`${API_BASE_URL}/accounts`)
+        ]);
+        if (clsRes.ok) {
+          const clsData = await clsRes.json();
+          setClusters(clsData);
+        }
+        if (accsRes.ok) {
+          const accsData = await accsRes.json();
+          setAllAccountIds(accsData);
+        }
+        // Auto-select the newly created account to animate node and open side dossier!
+        if (data.new_account_id) {
+          setSelectedAccountId(data.new_account_id);
+        }
+      }
+    } catch (err) {
+      console.error('Error creating live order:', err);
+    } finally {
+      setCreatingOrder(false);
+    }
+  };
 
   const fetchData = () => {
     setLoading(true);
@@ -183,6 +226,17 @@ export default function App() {
               <span>Synced with Razorpay test-mode API ({razorpayStatus.order_count} orders)</span>
             </div>
           )}
+
+          {/* Create Live Test Order Action Button */}
+          <button 
+            className="live-order-btn" 
+            onClick={handleCreateLiveOrder} 
+            disabled={creatingOrder}
+            title="Make a real live POST request to Razorpay's Test-Mode API to create a new order and join the fraud ring"
+          >
+            {creatingOrder ? <Loader2 className="spin" size={13} /> : <Zap size={13} />}
+            <span>{creatingOrder ? 'Creating Order...' : '⚡ Create Live Test Order'}</span>
+          </button>
         </div>
       </nav>
 
@@ -207,7 +261,7 @@ export default function App() {
         </div>
 
         {/* Middle: Account Search Input with ⌘K badge */}
-        <div style={{ position: 'relative', width: '360px', margin: '0 auto' }}>
+        <div style={{ position: 'relative', width: '100%', maxWidth: '360px', margin: '0 auto' }}>
           <div className="search-bar-input">
             <Search size={14} color="#8FA3C4" />
             <input

@@ -29,6 +29,42 @@
   --font-mono: 'JetBrains Mono', monospace;
 }
 
+.live-order-btn {
+  background: rgba(11, 114, 231, 0.18);
+  border: 1px solid rgba(11, 114, 231, 0.5);
+  border-radius: 20px;
+  padding: 5px 14px;
+  font-size: 0.73rem;
+  font-weight: 700;
+  color: #378ADD;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: var(--font-mono);
+}
+
+.live-order-btn:hover:not(:disabled) {
+  background: rgba(11, 114, 231, 0.35);
+  border-color: #378ADD;
+  color: #FFFFFF;
+  box-shadow: 0 0 12px rgba(55, 138, 221, 0.4);
+}
+
+.live-order-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  100% { transform: rotate(360deg); }
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -1297,4 +1333,201 @@ body {
 
 .legend-dot.isolated {
   background: #687D9D;
+}
+
+/* ==========================================
+   Mobile Responsiveness (Phones & Small Devices)
+   ========================================== */
+@media (max-width: 768px) {
+  /* Retain full-height app layout so canvas expands cleanly */
+  #root {
+    height: 100vh !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+  }
+
+  /* Row 1: Top Navigation Bar */
+  .app-top-navbar {
+    height: auto !important;
+    flex-direction: column !important;
+    padding: 8px 12px !important;
+    gap: 6px !important;
+    align-items: stretch !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
+  }
+
+  .top-navbar-left-group {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 6px !important;
+    width: 100% !important;
+  }
+
+  .brand-logo-container {
+    width: 100% !important;
+  }
+
+  /* Horizontal Scrollable Tabs on Mobile */
+  .top-navbar-tabs {
+    display: flex !important;
+    flex-direction: row !important;
+    margin-left: 0 !important;
+    width: 100% !important;
+    overflow-x: auto !important;
+    white-space: nowrap !important;
+    padding: 4px 0 !important;
+    gap: 14px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+  }
+
+  .top-navbar-tabs::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .top-navbar-tab {
+    font-size: 0.8rem !important;
+    padding: 2px 0 !important;
+  }
+
+  /* Horizontal Scrollable Badges / Action Buttons on Mobile */
+  .top-navbar-right-actions {
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: row !important;
+    overflow-x: auto !important;
+    white-space: nowrap !important;
+    gap: 6px !important;
+    padding: 2px 0 !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+  }
+
+  .top-navbar-right-actions::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .live-status-pill, .live-order-btn {
+    font-size: 0.65rem !important;
+    padding: 3px 8px !important;
+    flex-shrink: 0 !important;
+  }
+
+  /* Row 2: Header Single Control Bar */
+  .app-header-single {
+    height: auto !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    padding: 8px 12px !important;
+    gap: 8px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
+  }
+
+  .view-toggle-container {
+    width: 100% !important;
+    display: flex !important;
+  }
+
+  .view-toggle-btn {
+    flex: 1 !important;
+    text-align: center !important;
+    font-size: 0.75rem !important;
+    padding: 5px 8px !important;
+  }
+
+  /* Search Container & Bar */
+  .search-bar-input {
+    width: 100% !important;
+    padding: 6px 10px !important;
+  }
+
+  .search-bar-input input {
+    font-size: 0.78rem !important;
+  }
+
+  .shortcut-badge {
+    display: none !important;
+  }
+
+  /* KPI Summary Pills Horizontal Scrollable Bar */
+  .header-kpi-group {
+    width: 100% !important;
+    margin-left: 0 !important;
+    display: flex !important;
+    flex-direction: row !important;
+    overflow-x: auto !important;
+    white-space: nowrap !important;
+    gap: 6px !important;
+    padding-bottom: 2px !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+  }
+
+  .header-kpi-group::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .kpi-pill {
+    padding: 4px 8px !important;
+    font-size: 0.72rem !important;
+    flex-shrink: 0 !important;
+  }
+
+  /* Main Container & Graph Canvas */
+  .main-container {
+    flex: 1 !important;
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    position: relative !important;
+    overflow: hidden !important;
+  }
+
+  .canvas-legend-bar-topleft {
+    top: 8px !important;
+    left: 8px !important;
+    padding: 4px 8px !important;
+    font-size: 0.62rem !important;
+    max-width: calc(100% - 16px) !important;
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+  }
+
+  .canvas-zoom-controls {
+    bottom: 12px !important;
+    right: 12px !important;
+  }
+
+  /* Account Panel Mobile Bottom Drawer */
+  .account-panel-drawer {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 70vh !important;
+    position: fixed !important;
+    bottom: 0 !important;
+    top: auto !important;
+    left: 0 !important;
+    right: 0 !important;
+    border-left: none !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.3) !important;
+    box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.95) !important;
+    border-radius: 16px 16px 0 0 !important;
+    z-index: 200 !important;
+  }
+
+  /* Full Page Sub-Views (Early Warning, Guardrails, Evaluation, ML) */
+  .full-page-view-container {
+    padding: 16px 16px !important;
+    overflow-y: auto !important;
+  }
+
+  .full-page-card {
+    gap: 16px !important;
+  }
+
+  .full-page-header h2 {
+    font-size: 1.05rem !important;
+  }
 }

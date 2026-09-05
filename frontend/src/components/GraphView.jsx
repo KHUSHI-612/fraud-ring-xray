@@ -12,7 +12,6 @@ export default function GraphView({
 }) {
   const containerRef = useRef(null);
   const networkRef = useRef(null);
-  const connectedNodesRef = useRef([]);
 
   useEffect(() => {
     if (!containerRef.current || !clusters || clusters.length === 0) return;
@@ -84,8 +83,6 @@ export default function GraphView({
       }
     });
 
-    // Save connected node IDs for camera fitting
-    connectedNodesRef.current = Array.from(nodesMap.keys());
 
     // When showAllAccounts is enabled, place isolated nodes in a spiral constellation
     if (showAllAccounts && Array.isArray(allAccountIds)) {
@@ -230,6 +227,13 @@ export default function GraphView({
 
     const network = new Network(containerRef.current, data, options);
     networkRef.current = network;
+
+    // Automatically fit all nodes inside canvas with padding so top/bottom clusters never clip
+    setTimeout(() => {
+      if (networkRef.current) {
+        networkRef.current.fit({ animation: false });
+      }
+    }, 120);
 
     // Node click handler
     network.on('click', (params) => {
@@ -386,16 +390,9 @@ export default function GraphView({
 
   const handleResetView = () => {
     if (networkRef.current) {
-      if (connectedNodesRef.current.length > 0) {
-        networkRef.current.fit({
-          nodes: connectedNodesRef.current,
-          animation: { duration: 400, easingFunction: 'easeInOutQuad' },
-        });
-      } else {
-        networkRef.current.fit({
-          animation: { duration: 400, easingFunction: 'easeInOutQuad' },
-        });
-      }
+      networkRef.current.fit({
+        animation: { duration: 400, easingFunction: 'easeInOutQuad' },
+      });
     }
   };
 
