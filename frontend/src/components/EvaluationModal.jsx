@@ -29,19 +29,16 @@ export default function EvaluationModal({ evaluation: initialEval, loading: init
 
   const evaluation = evalData || {};
 
-  // Live metrics from backend evaluation.json
-  const prec = evaluation.precision != null ? evaluation.precision : 0.556;
-  const rec = evaluation.recall != null ? evaluation.recall : 0.833;
-  const f1 = evaluation.f1_score != null ? evaluation.f1_score : 0.667;
-  
-  const fprVal = evaluation.account_metrics?.false_positive_rate != null 
-    ? evaluation.account_metrics.false_positive_rate 
-    : (evaluation.false_positive_rate != null ? evaluation.false_positive_rate : 0.056);
+  // Saved benchmark metrics from backend evaluation.json (310 benchmark accounts)
+  const prec = evaluation.account_metrics?.precision ?? (evaluation.precision != null ? evaluation.precision : 0.6471);
+  const rec = evaluation.account_metrics?.recall ?? (evaluation.recall != null ? evaluation.recall : 0.7857);
+  const f1 = evaluation.account_metrics?.f1_score ?? (evaluation.f1_score != null ? evaluation.f1_score : 0.7097);
+  const fprVal = evaluation.account_metrics?.false_positive_rate ?? (evaluation.false_positive_rate != null ? evaluation.false_positive_rate : 0.0426);
 
-  const precDisplay = prec.toFixed(2);
-  const recDisplay = rec.toFixed(2);
-  const f1Display = f1.toFixed(2);
-  const fprDisplay = fprVal.toFixed(2);
+  const precDisplay = prec.toFixed(4);
+  const recDisplay = rec.toFixed(4);
+  const f1Display = f1.toFixed(4);
+  const fprDisplay = fprVal.toFixed(4);
 
   // Live cluster chart data mapped directly from clusters.json dataset
   const clusterChartData = (clustersData.length > 0 ? clustersData : [

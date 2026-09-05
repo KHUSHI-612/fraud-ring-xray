@@ -20,10 +20,10 @@ export default function MLValidationModal({ isFullPage, onClose }) {
       .catch(() => setLoading(false));
   }, []);
 
-  const cm = mlData?.confusion_matrix || { tp: 22, fp: 17, fn: 6, tn: 285, total: 330 };
-  const acc = mlData?.accuracy != null ? mlData.accuracy : 0.9303;
-  const aucRoc = mlData?.auc_roc != null ? mlData.auc_roc : 0.8412;
-  const calibration = mlData?.calibration_score != null ? mlData.calibration_score : 0.9213;
+  const cm = mlData?.confusion_matrix || { tp: 22, fp: 12, fn: 6, tn: 270, total: 310 };
+  const acc = mlData?.accuracy != null ? mlData.accuracy : 0.9419;
+  const aucRoc = mlData?.auc_roc != null ? mlData.auc_roc : 0.8951;
+  const calibration = mlData?.calibration_score != null ? mlData.calibration_score : 0.9805;
 
   // Live cluster verdicts data mapped directly from clusters.json or fallback list
   const clusterVerdicts = (clustersData.length > 0 ? clustersData : [
