@@ -153,125 +153,135 @@ def create_live_ring_order():
     to create ONE new order right now with shared risk metadata (address: '12 MG Road, Bangalore', device: 'DEV_RAZORPAY_RING_A1'),
     appends to data/razorpay_orders.json, immediately re-runs graph clustering, and returns the updated cluster result.
     """
-    import os, time, random, requests, json
-    from pathlib import Path
-    from build_graph import load_data, build_graph, behavioral_signal_boost, find_clusters, evaluate_against_ground_truth
-    from razorpay_sync import load_env_file
+    try:
+        import os, time, random, requests, json
+        from pathlib import Path
+        from build_graph import load_data, build_graph, behavioral_signal_boost, find_clusters, evaluate_against_ground_truth
+        from razorpay_sync import load_env_file
 
-    load_env_file()
-    key_id = os.getenv("RAZORPAY_KEY_ID")
-    key_secret = os.getenv("RAZORPAY_KEY_SECRET")
+        load_env_file()
+        key_id = os.getenv("RAZORPAY_KEY_ID")
+        key_secret = os.getenv("RAZORPAY_KEY_SECRET")
 
-    is_placeholder = (not key_id or "your_key" in key_id.lower() or not key_secret or "your_secret" in key_secret.lower())
+        is_placeholder = (not key_id or "your_key" in key_id.lower() or not key_secret or "your_secret" in key_secret.lower())
 
-    rzp_file = DATA_DIR / "razorpay_orders.json"
+        DATA_DIR.mkdir(exist_ok=True)
+        rzp_file = DATA_DIR / "razorpay_orders.json"
 
-    existing_orders = []
-    if rzp_file.exists():
-        try:
-            with open(rzp_file, "r", encoding="utf-8") as f:
-                rzp_data = json.load(f)
-                existing_orders = rzp_data.get("orders", [])
-        except Exception as e:
-            print(f"Error reading razorpay_orders.json: {e}")
+        existing_orders = []
+        if rzp_file.exists():
+            try:
+                with open(rzp_file, "r", encoding="utf-8") as f:
+                    rzp_data = json.load(f)
+                    existing_orders = rzp_data.get("orders", [])
+            except Exception as e:
+                print(f"Error reading razorpay_orders.json: {e}")
 
-    ring_acc_count = sum(1 for o in existing_orders if "ACC_RZP_RING_" in o.get("notes", {}).get("account_id", ""))
-    new_acc_num = ring_acc_count + 1
-    new_account_id = f"ACC_RZP_RING_{new_acc_num}"
+        ring_acc_count = sum(1 for o in existing_orders if "ACC_RZP_RING_" in o.get("notes", {}).get("account_id", ""))
+        new_acc_num = ring_acc_count + 1
+        new_account_id = f"ACC_RZP_RING_{new_acc_num}"
 
-    amount_paise = random.randint(300, 1500) * 100
-    receipt_id = f"receipt_live_{random.randint(1000, 9999)}"
+        amount_paise = random.randint(300, 1500) * 100
+        receipt_id = f"receipt_live_{random.randint(1000, 9999)}"
 
-    shared_notes = {
-        "account_id": new_account_id,
-        "device_id": "DEV_RAZORPAY_RING_A1",
-        "shipping_address": "12 MG Road, Bangalore",
-        "ip_address": "192.168.1.105",
-        "ring_label": "SIMULATED_FRAUD_RING"
-    }
-
-    payload = {
-        "amount": amount_paise,
-        "currency": "INR",
-        "receipt": receipt_id,
-        "notes": shared_notes
-    }
-
-    new_order_data = None
-
-    if not is_placeholder:
-        try:
-            auth = (key_id, key_secret)
-            headers = {"Content-Type": "application/json"}
-            resp = requests.post("https://api.razorpay.com/v1/orders", json=payload, auth=auth, headers=headers, timeout=10)
-            if resp.status_code in (200, 201):
-                new_order_data = resp.json()
-            else:
-                print(f"⚠️ Razorpay API error ({resp.status_code}): {resp.text}")
-        except Exception as e:
-            print(f"❌ Exception connecting to Razorpay API: {e}")
-
-    if not new_order_data:
-        # Synthetic fallback if credentials missing or offline
-        new_order_data = {
-            "id": f"order_live_{random.randint(10000, 99999)}",
-            "entity": "order",
-            "amount": amount_paise,
-            "amount_paid": 0,
-            "amount_due": amount_paise,
-            "currency": "INR",
-            "receipt": receipt_id,
-            "status": "created",
-            "attempts": 0,
-            "notes": shared_notes,
-            "created_at": int(time.time())
+        shared_notes = {
+            "account_id": new_account_id,
+            "device_id": "DEV_RAZORPAY_RING_A1",
+            "shipping_address": "12 MG Road, Bangalore",
+            "ip_address": "192.168.1.105",
+            "ring_label": "SIMULATED_FRAUD_RING"
         }
 
-    existing_orders.append(new_order_data)
-    save_data = {
-        "status": "synced",
-        "order_count": len(existing_orders),
-        "source": "Razorpay Test-Mode API (v1/orders)",
-        "orders": existing_orders
-    }
+        payload = {
+            "amount": amount_paise,
+            "currency": "INR",
+            "receipt": receipt_id,
+            "notes": shared_notes
+        }
 
-    with open(rzp_file, "w", encoding="utf-8") as f:
-        json.dump(save_data, f, indent=2)
+        new_order_data = None
 
-    # Immediately re-run detection pipeline inline
-    accounts, orders = load_data()
-    G = build_graph(accounts)
-    behavioral_signal_boost(G, accounts, orders)
-    clusters = find_clusters(G, accounts, orders)
+        if not is_placeholder:
+            try:
+                auth = (key_id, key_secret)
+                headers = {"Content-Type": "application/json"}
+                resp = requests.post("https://api.razorpay.com/v1/orders", json=payload, auth=auth, headers=headers, timeout=10)
+                if resp.status_code in (200, 201):
+                    new_order_data = resp.json()
+                else:
+                    print(f"⚠️ Razorpay API error ({resp.status_code}): {resp.text}")
+            except Exception as e:
+                print(f"❌ Exception connecting to Razorpay API: {e}")
 
-    with open(DATA_DIR / "clusters.json", "w", encoding="utf-8") as f:
-        json.dump(clusters, f, indent=2)
+        if not new_order_data:
+            # Synthetic fallback if credentials missing or offline
+            new_order_data = {
+                "id": f"order_live_{random.randint(10000, 99999)}",
+                "entity": "order",
+                "amount": amount_paise,
+                "amount_paid": 0,
+                "amount_due": amount_paise,
+                "currency": "INR",
+                "receipt": receipt_id,
+                "status": "created",
+                "attempts": 0,
+                "notes": shared_notes,
+                "created_at": int(time.time())
+            }
 
-    gt_file = DATA_DIR / "ground_truth.json"
-    if gt_file.exists():
+        existing_orders.append(new_order_data)
+        save_data = {
+            "status": "synced",
+            "order_count": len(existing_orders),
+            "source": "Razorpay Test-Mode API (v1/orders)",
+            "orders": existing_orders
+        }
+
         try:
-            with open(gt_file, "r", encoding="utf-8") as f:
-                gt = json.load(f)
-            evaluation = evaluate_against_ground_truth(clusters, gt, accounts)
-            with open(DATA_DIR / "evaluation.json", "w", encoding="utf-8") as f:
-                json.dump(evaluation, f, indent=2)
+            with open(rzp_file, "w", encoding="utf-8") as f:
+                json.dump(save_data, f, indent=2)
         except Exception as e:
-            print(f"Error updating evaluation.json: {e}")
+            print(f"Warning: Failed writing razorpay_orders.json: {e}")
 
-    matching_cluster = None
-    for c in clusters:
-        if new_account_id in c.get("members", []):
-            matching_cluster = c
-            break
+        # Immediately re-run detection pipeline inline
+        accounts, orders = load_data()
+        G = build_graph(accounts)
+        behavioral_signal_boost(G, accounts, orders)
+        clusters = find_clusters(G, accounts, orders)
 
-    return {
-        "success": True,
-        "message": f"Successfully created live Razorpay order {new_order_data.get('id')} for {new_account_id}",
-        "new_account_id": new_account_id,
-        "order": new_order_data,
-        "cluster": matching_cluster,
-        "order_count": len(existing_orders)
-    }
+        try:
+            with open(DATA_DIR / "clusters.json", "w", encoding="utf-8") as f:
+                json.dump(clusters, f, indent=2)
+        except Exception as e:
+            print(f"Warning: Failed writing clusters.json: {e}")
+
+        gt_file = DATA_DIR / "ground_truth.json"
+        if gt_file.exists():
+            try:
+                with open(gt_file, "r", encoding="utf-8") as f:
+                    gt = json.load(f)
+                evaluation = evaluate_against_ground_truth(clusters, gt, accounts)
+                with open(DATA_DIR / "evaluation.json", "w", encoding="utf-8") as f:
+                    json.dump(evaluation, f, indent=2)
+            except Exception as e:
+                print(f"Error updating evaluation.json: {e}")
+
+        matching_cluster = None
+        for c in clusters:
+            if new_account_id in c.get("members", []):
+                matching_cluster = c
+                break
+
+        return {
+            "success": True,
+            "message": f"Successfully created live Razorpay order {new_order_data.get('id')} for {new_account_id}",
+            "new_account_id": new_account_id,
+            "order": new_order_data,
+            "cluster": matching_cluster,
+            "order_count": len(existing_orders)
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to create live ring order: {str(e)}")
 
 
 @app.get("/explain/{account_id}")

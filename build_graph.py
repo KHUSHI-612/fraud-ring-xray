@@ -26,7 +26,9 @@ import pandas as pd
 from ml_classifier_cv import predict_cluster_ml_confidence
 
 
-DATA_DIR = "data"
+from pathlib import Path
+
+DATA_DIR = Path(__file__).parent / "data"
 
 # ---------------------------------------------------------------------------
 # Edge weights — how much each shared signal contributes.
