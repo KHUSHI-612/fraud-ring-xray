@@ -29,16 +29,22 @@ export default function EvaluationModal({ evaluation: initialEval, loading: init
 
   const evaluation = evalData || {};
 
-  // Saved benchmark metrics from backend evaluation.json (310 benchmark accounts)
-  const prec = evaluation.account_metrics?.precision ?? (evaluation.precision != null ? evaluation.precision : 0.6471);
-  const rec = evaluation.account_metrics?.recall ?? (evaluation.recall != null ? evaluation.recall : 0.7857);
-  const f1 = evaluation.account_metrics?.f1_score ?? (evaluation.f1_score != null ? evaluation.f1_score : 0.7097);
-  const fprVal = evaluation.account_metrics?.false_positive_rate ?? (evaluation.false_positive_rate != null ? evaluation.false_positive_rate : 0.0426);
+  // Cluster-level (Primary validated benchmark headline metrics)
+  const clusterPrec = evaluation.precision != null ? evaluation.precision : 0.625;
+  const clusterRec = evaluation.recall != null ? evaluation.recall : 0.833;
+  const clusterF1 = evaluation.f1_score != null ? evaluation.f1_score : 0.714;
+  const clusterFPR = evaluation.false_positive_rate != null ? evaluation.false_positive_rate : 0.056;
 
-  const precDisplay = prec.toFixed(4);
-  const recDisplay = rec.toFixed(4);
-  const f1Display = f1.toFixed(4);
-  const fprDisplay = fprVal.toFixed(4);
+  // Account-level (Secondary detail metrics across 310 benchmark accounts)
+  const accountPrec = evaluation.account_metrics?.precision ?? 0.6471;
+  const accountRec = evaluation.account_metrics?.recall ?? 0.7857;
+  const accountF1 = evaluation.account_metrics?.f1_score ?? 0.7097;
+  const accountFPR = evaluation.account_metrics?.false_positive_rate ?? 0.0426;
+
+  const precDisplay = clusterPrec.toFixed(3);
+  const recDisplay = clusterRec.toFixed(3);
+  const f1Display = clusterF1.toFixed(3);
+  const fprDisplay = clusterFPR.toFixed(3);
 
   // Live cluster chart data mapped directly from clusters.json dataset
   const clusterChartData = (clustersData.length > 0 ? clustersData : [
@@ -83,14 +89,19 @@ export default function EvaluationModal({ evaluation: initialEval, loading: init
       style={isFullPage ? { width: '100%', maxWidth: '100%', background: 'transparent' } : { maxWidth: '960px', padding: '24px' }}
     >
       {/* Top Header Section */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '32px' }}>
-        <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#378ADD', textTransform: 'uppercase', letterSpacing: '0.12em', fontFamily: 'var(--font-mono)' }}>
-          DETECTOR PERFORMANCE
-        </span>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '28px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
+          <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#378ADD', textTransform: 'uppercase', letterSpacing: '0.12em', fontFamily: 'var(--font-mono)' }}>
+            DETECTOR PERFORMANCE
+          </span>
+          <span style={{ fontSize: '0.74rem', fontWeight: 700, color: '#1D9E75', background: 'rgba(29, 158, 117, 0.14)', border: '1px solid rgba(29, 158, 117, 0.35)', padding: '3px 10px', borderRadius: '12px', fontFamily: 'var(--font-mono)' }}>
+            Detection threshold: 0.5 (chosen via 10-seed robustness sweep)
+          </span>
+        </div>
         <h1 style={{ fontSize: '2.6rem', fontWeight: 800, color: '#FFFFFF', letterSpacing: '-0.02em', lineHeight: 1.15 }}>
           Evaluation Metrics
         </h1>
-        <p style={{ fontSize: '0.98rem', color: '#8FA3C4', maxWidth: '820px', lineHeight: 1.6, marginTop: '4px' }}>
+        <p style={{ fontSize: '0.98rem', color: '#8FA3C4', maxWidth: '820px', lineHeight: 1.6, marginTop: '2px' }}>
           Precision, recall, and stability indicators measured across 10 leave-one-seed-out cross-validation evaluation runs (119 training cluster examples).
         </p>
       </div>
@@ -98,7 +109,7 @@ export default function EvaluationModal({ evaluation: initialEval, loading: init
       {/* Main Container for Metrics & Charts */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
         
-        {/* 4 KPI Metric Cards Row (Derived from Live evaluation.json Data) */}
+        {/* 4 KPI Metric Cards Row (Derived from Saved evaluation.json Data) */}
         <div style={{ 
           background: '#080A0F', 
           border: '1px solid rgba(255, 255, 255, 0.12)', 
@@ -108,67 +119,79 @@ export default function EvaluationModal({ evaluation: initialEval, loading: init
           overflow: 'hidden'
         }}>
           {/* Card 1: Precision */}
-          <div style={{ padding: '22px 24px', borderRight: '1px solid rgba(255, 255, 255, 0.1)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div style={{ padding: '20px 22px', borderRight: '1px solid rgba(255, 255, 255, 0.1)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#8FA3C4', letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: 'var(--font-mono)' }}>
                 PRECISION
               </span>
-              <Target size={16} color="#378ADD" />
+              <span style={{ fontSize: '0.62rem', fontWeight: 800, color: '#378ADD', background: 'rgba(55, 138, 221, 0.15)', border: '1px solid rgba(55, 138, 221, 0.3)', padding: '2px 6px', borderRadius: '4px', fontFamily: 'var(--font-mono)' }}>
+                CLUSTER-LEVEL
+              </span>
             </div>
             <div style={{ fontSize: '2.4rem', fontWeight: 800, color: '#FFFFFF', lineHeight: 1 }}>
               {precDisplay}
             </div>
-            <span style={{ fontSize: '0.72rem', color: '#687D9D', fontFamily: 'var(--font-mono)' }}>
-              TP / (TP + FP)
-            </span>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', fontFamily: 'var(--font-mono)', fontSize: '0.72rem' }}>
+              <span style={{ color: '#687D9D' }}>5 TP / 8 Flagged Clusters</span>
+              <span style={{ color: '#378ADD', fontWeight: 600 }}>Account-level: {accountPrec.toFixed(4)}</span>
+            </div>
           </div>
 
           {/* Card 2: Recall */}
-          <div style={{ padding: '22px 24px', borderRight: '1px solid rgba(255, 255, 255, 0.1)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div style={{ padding: '20px 22px', borderRight: '1px solid rgba(255, 255, 255, 0.1)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#8FA3C4', letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: 'var(--font-mono)' }}>
                 RECALL
               </span>
-              <Activity size={16} color="#378ADD" />
+              <span style={{ fontSize: '0.62rem', fontWeight: 800, color: '#378ADD', background: 'rgba(55, 138, 221, 0.15)', border: '1px solid rgba(55, 138, 221, 0.3)', padding: '2px 6px', borderRadius: '4px', fontFamily: 'var(--font-mono)' }}>
+                CLUSTER-LEVEL
+              </span>
             </div>
             <div style={{ fontSize: '2.4rem', fontWeight: 800, color: '#FFFFFF', lineHeight: 1 }}>
               {recDisplay}
             </div>
-            <span style={{ fontSize: '0.72rem', color: '#687D9D', fontFamily: 'var(--font-mono)' }}>
-              TP / (TP + FN)
-            </span>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', fontFamily: 'var(--font-mono)', fontSize: '0.72rem' }}>
+              <span style={{ color: '#687D9D' }}>5 Caught / 6 Total Rings</span>
+              <span style={{ color: '#378ADD', fontWeight: 600 }}>Account-level: {accountRec.toFixed(4)}</span>
+            </div>
           </div>
 
           {/* Card 3: F1 Score */}
-          <div style={{ padding: '22px 24px', borderRight: '1px solid rgba(255, 255, 255, 0.1)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div style={{ padding: '20px 22px', borderRight: '1px solid rgba(255, 255, 255, 0.1)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#8FA3C4', letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: 'var(--font-mono)' }}>
                 F1 SCORE
               </span>
-              <TrendingUp size={16} color="#378ADD" />
+              <span style={{ fontSize: '0.62rem', fontWeight: 800, color: '#378ADD', background: 'rgba(55, 138, 221, 0.15)', border: '1px solid rgba(55, 138, 221, 0.3)', padding: '2px 6px', borderRadius: '4px', fontFamily: 'var(--font-mono)' }}>
+                CLUSTER-LEVEL
+              </span>
             </div>
             <div style={{ fontSize: '2.4rem', fontWeight: 800, color: '#FFFFFF', lineHeight: 1 }}>
               {f1Display}
             </div>
-            <span style={{ fontSize: '0.72rem', color: '#687D9D', fontFamily: 'var(--font-mono)' }}>
-              harmonic mean
-            </span>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', fontFamily: 'var(--font-mono)', fontSize: '0.72rem' }}>
+              <span style={{ color: '#687D9D' }}>Harmonic Mean (Clusters)</span>
+              <span style={{ color: '#378ADD', fontWeight: 600 }}>Account-level: {accountF1.toFixed(4)}</span>
+            </div>
           </div>
 
           {/* Card 4: False Positive Rate */}
-          <div style={{ padding: '22px 24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div style={{ padding: '20px 22px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#8FA3C4', letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: 'var(--font-mono)' }}>
                 FALSE POSITIVE RATE
               </span>
-              <AlertTriangle size={16} color="#378ADD" />
+              <span style={{ fontSize: '0.62rem', fontWeight: 800, color: '#378ADD', background: 'rgba(55, 138, 221, 0.15)', border: '1px solid rgba(55, 138, 221, 0.3)', padding: '2px 6px', borderRadius: '4px', fontFamily: 'var(--font-mono)' }}>
+                CLUSTER-LEVEL
+              </span>
             </div>
             <div style={{ fontSize: '2.4rem', fontWeight: 800, color: '#FFFFFF', lineHeight: 1 }}>
               {fprDisplay}
             </div>
-            <span style={{ fontSize: '0.72rem', color: '#687D9D', fontFamily: 'var(--font-mono)' }}>
-              FP / (FP + TN)
-            </span>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', fontFamily: 'var(--font-mono)', fontSize: '0.72rem' }}>
+              <span style={{ color: '#687D9D' }}>3 FP / 53 Total Components</span>
+              <span style={{ color: '#378ADD', fontWeight: 600 }}>Account-level: {accountFPR.toFixed(4)}</span>
+            </div>
           </div>
         </div>
 
