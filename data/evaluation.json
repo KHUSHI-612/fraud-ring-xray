@@ -1,6 +1,6 @@
 {
   "total_clusters_found": 13,
-  "total_flagged_suspicious": 9,
+  "total_flagged_suspicious": 8,
   "true_positives": [
     {
       "cluster_id": "cluster_4",
@@ -53,21 +53,11 @@
         "ACC_N3_3"
       ],
       "is_known_noise_bait": true
-    },
-    {
-      "cluster_id": "cluster_11",
-      "members": [
-        "ACC_RZP_RING_1",
-        "ACC_RZP_RING_2",
-        "ACC_RZP_RING_3",
-        "ACC_RZP_RING_4",
-        "ACC_RZP_RING_5"
-      ],
-      "is_known_noise_bait": false
     }
   ],
-  "precision": 0.556,
+  "precision": 0.625,
   "recall": 0.833,
+  "f1_score": 0.714,
   "rings_caught": 5,
   "rings_total": 6,
   "rings_missed": [
@@ -79,5 +69,22 @@
     "RING_A1": 1.0,
     "RING_C2": 0.75,
     "RING_A2": 1.0
+  },
+  "account_confusion_matrix": {
+    "tp": 22,
+    "fp": 12,
+    "fn": 6,
+    "tn": 270,
+    "total": 310
+  },
+  "account_metrics": {
+    "accuracy": 0.9419,
+    "precision": 0.6471,
+    "recall": 0.7857,
+    "f1_score": 0.7097,
+    "false_positive_rate": 0.0426,
+    "auc_roc": 0.8951,
+    "brier_score_loss": 0.0195,
+    "calibration_score": 0.9805
   }
 }

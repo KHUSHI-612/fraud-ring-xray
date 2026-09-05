@@ -238,16 +238,23 @@
     "cluster_id": "cluster_11",
     "members": [
       "ACC_RZP_RING_1",
+      "ACC_RZP_RING_10",
+      "ACC_RZP_RING_11",
+      "ACC_RZP_RING_12",
       "ACC_RZP_RING_2",
       "ACC_RZP_RING_3",
       "ACC_RZP_RING_4",
-      "ACC_RZP_RING_5"
+      "ACC_RZP_RING_5",
+      "ACC_RZP_RING_6",
+      "ACC_RZP_RING_7",
+      "ACC_RZP_RING_8",
+      "ACC_RZP_RING_9"
     ],
-    "size": 5,
+    "size": 12,
     "weight_density": 1.9,
-    "signup_spread_minutes": 0.0,
+    "signup_spread_minutes": 2742.7,
     "avg_return_rate": 0.0,
-    "ml_confidence": 0.9905,
+    "ml_confidence": 1.0,
     "signals_involved": [
       "address",
       "device",
